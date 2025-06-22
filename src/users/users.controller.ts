@@ -1,4 +1,6 @@
-import { Controller, Get, Res,  Post, Body, Patch, Param, Delete, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Res,  Post, Body, Patch, Param, Delete, HttpStatus, UseGuards } from '@nestjs/common';
+import { Roles } from '../auth/guard/roles.decorator';
+import { AuthGuard } from '../auth/guard/auth.guard';
 import { Response } from 'express';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -8,6 +10,8 @@ import { UsersService } from './users.service';
 export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
 
+    @Roles('admin')
+    @UseGuards(AuthGuard)
     @Get()
     async getAllUsers(@Res() res: Response) {
         try {
@@ -44,6 +48,8 @@ export class UsersController {
         }
     }
 
+    @Roles('admin')
+    @UseGuards(AuthGuard)
     @Post()
     async createUsers(@Res() res: Response, @Body() body: CreateUserDto) {
         try {
