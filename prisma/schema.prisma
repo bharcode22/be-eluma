@@ -13,27 +13,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Role {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  role_name           String? 
-  user                User[]
-
-  created_at          DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime? @db.Timestamptz(6)
-
+enum Role {
+  admin
+  user
 }
 
 model User {
   id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  role_id             String    @db.Uuid
   username            String
-  name                String
   email               String    @unique
+  name                String
   password            String
 
+  role                Role      @default(user)
   properties          Properties[]
-  role                Role @relation(fields: [role_id], references: [id])
 
   created_at          DateTime  @default(now()) @db.Timestamptz(6)
   updated_at          DateTime  @default(now()) @db.Timestamptz(6)
@@ -229,3 +222,9 @@ model ImagesService {
   updated_at          DateTime  @default(now()) @db.Timestamptz(6)
   deleted_at          DateTime? @db.Timestamptz(6)
 } 
+
+model BlacklistedToken {
+    id        Int      @id @default(autoincrement())
+    token     String   @unique @db.VarChar(255)
+    createdAt DateTime @default(now())
+}
