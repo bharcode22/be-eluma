@@ -4,6 +4,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { UsersController } from './users/users.controller';
 import { UsersService } from './users/users.service';
 import { AuthModule } from './auth/auth.module';
+import { TypePropertyModule } from './type-property/type-property.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { AuthModule } from './auth/auth.module';
     }),
     PrismaModule,
     AuthModule,
+    TypePropertyModule,
   ],
   controllers: [
     UsersController
