@@ -3,6 +3,7 @@ import { TypePropertyService } from './type-property.service';
 import { CreateTypePropertyDto } from './dto/create-type-property.dto';
 import { UpdateTypePropertyDto } from './dto/update-type-property.dto';
 import { Response } from 'express';
+import { time } from 'console';
 
 @Controller('type-property')
 export class TypePropertyController {
@@ -28,7 +29,7 @@ export class TypePropertyController {
       });
     }
   }
-  
+
   @Get()
   async findAll(@Res() res: Response) {
     try {
@@ -57,7 +58,7 @@ export class TypePropertyController {
       });
     }
   }
-  
+
   @Get(':id')
   async findOne(@Param('id') id: string, @Res() res: Response) {
     try {
@@ -87,12 +88,48 @@ export class TypePropertyController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTypePropertyDto: UpdateTypePropertyDto) {
-    return this.typePropertyService.update(+id, updateTypePropertyDto);
+  async update(@Param('id') id: string, @Body() body: UpdateTypePropertyDto, @Res() res: Response) {
+    try {
+      const updatePropertyType = await this.typePropertyService.update(id, body);
+
+      const formatData = {
+        id: updatePropertyType.id,
+        type_name: updatePropertyType.type_name,
+        updated_at: new Date()
+      };
+
+      return res.status(HttpStatus.OK).json({
+        message: "success to update property type", 
+        data: formatData
+      });
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        message: 'Failed to get type data',
+        error: error.message,
+      });
+    }
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.typePropertyService.remove(+id);
+  async remove(@Param('id') id: string, @Res() res: Response) {
+    try {
+      if (!id || id.trim() === '') {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: "property type id is invalid"
+        });
+      }
+
+      const deleteProperty = await this.typePropertyService.remove(id);
+
+      return res.status(HttpStatus.OK).json({
+        message: "property type deleted",
+        data: deleteProperty
+      });
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        message: 'Failed to delete property type',
+        error: error.message,
+      });
+    }
   }
 }

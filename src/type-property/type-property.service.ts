@@ -32,11 +32,26 @@ export class TypePropertyService {
     return getAllPropertyById
   }
 
-  update(id: number, data: UpdateTypePropertyDto) {
-    return `This action updates a #${id} typeProperty`;
+  async update(id: string, data: UpdateTypePropertyDto) {
+    const updatePropertyType = await this.prisma.propertyType.update({
+      where: {
+        id: id
+      }, 
+      data: {
+        type_name: data.type_name
+      }
+    }) 
+
+    return updatePropertyType;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} typeProperty`;
+  async remove(id: string) {
+    const deletePropertyType = await this.prisma.propertyType.delete({
+      where: {
+        id: id
+      }
+    }) 
+
+    return deletePropertyType;
   }
 }
