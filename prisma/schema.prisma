@@ -105,8 +105,26 @@ model Availability {
 model Facilities {
   id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   property_id         String    @db.Uuid
-  fasilities_name     String? 
-  status              Boolean? 
+  wifi                Boolean?  @default(false)
+  washing_machine     Boolean   @default(false)
+  coffee_maker        Boolean   @default(false)
+  celling_fan         Boolean   @default(false)
+  kettle              Boolean   @default(false)
+  air_conditioning    Boolean   @default(false)
+  tv                  Boolean   @default(false)
+  game_console        Boolean   @default(false)
+  private_entrance    Boolean   @default(false)
+  microwave           Boolean   @default(false)
+  pool                Boolean   @default(false)
+  beach_access        Boolean   @default(false)
+  drying_machine      Boolean   @default(false)
+  workspace_area      Boolean   @default(false)
+  toaster             Boolean   @default(false)
+  kitchen             Boolean   @default(false)
+  gym                 Boolean   @default(false)
+  refrigenerator      Boolean   @default(false)
+  fridge              Boolean   @default(false)
+  security            Boolean   @default(false)
 
   properties          Properties? @relation(fields: [property_id], references: [id])
 
@@ -134,7 +152,7 @@ model PropertiesOwner {
   name                String? 
   phone               Int? 
   watsapp             Int? 
-  email               Int?
+  email               String?
 
   properties          Properties? @relation(fields: [property_id], references: [id])
 
@@ -146,15 +164,16 @@ model PropertiesOwner {
 model AdditionalDetails {
   id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   property_id         String    @db.Uuid
-  allow_path          String? 
-  construction_nearby String?
+  parking_id          String    @db.Uuid
+  allow_path          Boolean   @default(false) 
+  construction_nearby Boolean   @default(false)
   cleaning_requency   String? 
   linen_chaneg        String? 
 
-  view                View[]
-  parking             Parking[]
-
   properties          Properties? @relation(fields: [property_id], references: [id])
+  Parking             Parking? @relation(fields: [parking_id], references: [id])
+
+  view                View[]
 
   created_at          DateTime  @default(now()) @db.Timestamptz(6)
   updated_at          DateTime  @default(now()) @db.Timestamptz(6)
@@ -163,10 +182,19 @@ model AdditionalDetails {
 
 model View {
   id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  view_type           String? 
-  additional_id       String?   @db.Uuid
+  Additional_id   String    @db.Uuid
+  rice_field          Boolean   @default(false)
+  pool_view           Boolean   @default(false)
+  beach_view          Boolean   @default(false)
+  ocean_view          Boolean   @default(false)
+  sunset_view         Boolean   @default(false)
+  volcano_view        Boolean   @default(false)
+  montain_view        Boolean   @default(false)
+  jungle_view         Boolean   @default(false)
+  sunrise_view        Boolean   @default(false)
+  garden_view         Boolean   @default(false)
 
-  additionalDetails          AdditionalDetails? @relation(fields: [additional_id], references: [id])
+  additionalDetails  AdditionalDetails? @relation(fields: [Additional_id], references: [id])
 
   created_at          DateTime  @default(now()) @db.Timestamptz(6)
   updated_at          DateTime  @default(now()) @db.Timestamptz(6)
@@ -175,10 +203,11 @@ model View {
 
 model Parking {
   id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  parking_type        String? 
-  additional_id       String?   @db.Uuid
+  car_parking         Boolean   @default(false)
+  bike_parking        Boolean   @default(false)
+  both_car_and_bike   Boolean   @default(false)
 
-  additionalDetails             AdditionalDetails? @relation(fields: [additional_id], references: [id])
+  additionalDetails   AdditionalDetails[]
 
   created_at          DateTime  @default(now()) @db.Timestamptz(6)
   updated_at          DateTime  @default(now()) @db.Timestamptz(6)
