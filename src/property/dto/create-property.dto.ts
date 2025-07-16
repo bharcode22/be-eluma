@@ -49,6 +49,7 @@ export class CreatePropertyDto {
 
     images?: {
         imagesUrl?: string;
+        imageName?: string,
     }[];
 
     propertiesOwner?: {

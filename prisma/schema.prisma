@@ -137,6 +137,7 @@ model Images {
   id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   property_id         String    @db.Uuid
   imagesUrl           String? 
+  imageName           String? 
 
   properties          Properties? @relation(fields: [property_id], references: [id])
 
@@ -150,8 +151,8 @@ model PropertiesOwner {
   property_id         String    @db.Uuid
   fullname            String? 
   name                String? 
-  phone               Int? 
-  watsapp             Int? 
+  phone               String? 
+  watsapp             String? 
   email               String?
 
   properties          Properties? @relation(fields: [property_id], references: [id])
@@ -253,7 +254,16 @@ model ImagesService {
 } 
 
 model BlacklistedToken {
-    id        Int      @id @default(autoincrement())
-    token     String   @unique @db.VarChar(255)
-    createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  token     String   @unique @db.VarChar(255)
+  createdAt DateTime @default(now())
+}
+
+model Genral_area {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  area                String?
+
+  created_at          DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at          DateTime? @db.Timestamptz(6)
 }

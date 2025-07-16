@@ -58,6 +58,7 @@ async create(body: CreatePropertyDto) {
         ? {
             create: body.images.map((img) => ({
               imagesUrl: img.imagesUrl,
+              imageName: img.imageName,
             })),
           }
         : undefined,
@@ -66,6 +67,8 @@ async create(body: CreatePropertyDto) {
         ? {
             create: {
               ...body.propertiesOwner,
+              phone: body.propertiesOwner.phone !== undefined ? body.propertiesOwner.phone.toString() : undefined,
+              watsapp: body.propertiesOwner.watsapp !== undefined ? body.propertiesOwner.watsapp.toString() : undefined,
             },
           }
         : undefined,
@@ -113,6 +116,33 @@ async create(body: CreatePropertyDto) {
     });
 
     return getAllProperty;
+  }
+
+  async findOne(id: string): Promise<Prisma.PropertiesGetPayload<{
+    include: {
+      location: true,
+      availability: true,
+      facilities: true,
+      images: true,
+      propertiesOwner: true,
+      additionalDetails: true
+    }
+  }>[]> {
+    const getPropertyById = await this.prisma.properties.findUnique({
+      where: {
+        id: id
+      }, 
+      include: {
+        location: true,
+        availability: true,
+        facilities: true,
+        images: true,
+        propertiesOwner: true,
+        additionalDetails: true
+      }
+    });
+
+    return [getPropertyById];
   }
 
   async findMyProperty(user_id: string): Promise<Prisma.PropertiesGetPayload<{
@@ -167,6 +197,15 @@ async create(body: CreatePropertyDto) {
     })
     return findByType;
   }
+
+  // async showImage(imagesName: string){
+  //   const showImage = await this.prisma.images.findMany({
+  //     where: {
+  //       imageName: imagesName 
+  //     }
+  //   })
+  //   return showImage;
+  // }
 
   update(id: number, body: UpdatePropertyDto) {
     return `This action updates a #${id} property`;
