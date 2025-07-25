@@ -3,12 +3,12 @@ import { Roles } from '../auth/guard/roles.decorator';
 import { AuthGuard } from '../auth/guard/auth.guard';
 import { PropertyService } from './property.service';
 import { PropertyImagesInterceptor } from './property-images.interceptor'
-import { UpdatePropertyDto } from './dto/update-property.dto';
 import { Response, Request } from 'express';
 import * as multer from 'multer';
 
 @Controller('property')
 export class PropertyController {
+  [x: string]: any;
   constructor(private readonly propertyService: PropertyService) {}
 
   @Roles('user')
@@ -54,8 +54,6 @@ export class PropertyController {
     }
   }
 
-  // @Roles('user')
-  // @UseGuards(AuthGuard)
   @Get()
   async findAll(@Res() res: Response) {
     try {
@@ -234,25 +232,78 @@ export class PropertyController {
       })
   }
 
-  // @Roles('user')
-  // @UseGuards(AuthGuard)
-  // @Get('propertyImages')
-  // async showImages(@Query('url') imagesUrl: string, @Res() res: Response) {
-  //   const showImageProperty = await this.propertyService.showImage(imagesUrl);
-
-  //   return res.status(HttpStatus.OK).json({
-  //     message: "success to get image info", 
-  //     data: showImageProperty
-  //   });
-  // }
-
+  @Roles('user')
+  @UseGuards(AuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() body: UpdatePropertyDto) {
-    return this.propertyService.update(+id, body);
+  @UseInterceptors(PropertyImagesInterceptor())
+  async update( @Param('id') id: string, @Body() body: any, @Req() req: Request, @Res() res: Response, @UploadedFiles() files: multer.File[] ) {
+    try {
+      const user = req.user as { id: string };
+      const userId = user?.id;
+  
+      const parsedBody = {
+        ...body,
+        number_of_bedrooms: body.number_of_bedrooms ? parseInt(body.number_of_bedrooms) : undefined,
+        number_of_bathrooms: body.number_of_bathrooms ? parseInt(body.number_of_bathrooms) : undefined,
+        maximum_guest: body.maximum_guest ? parseInt(body.maximum_guest) : undefined,
+        minimum_stay: body.minimum_stay ? parseInt(body.minimum_stay) : undefined,
+        price: body.price ? parseFloat(body.price) : undefined,
+        monthly_price: body.monthly_price ? parseFloat(body.monthly_price) : undefined,
+        yearly_price: body.yearly_price ? parseFloat(body.yearly_price) : undefined,
+        location:
+          body.location && typeof body.location === 'string' ? JSON.parse(body.location) : body.location,
+        availability:
+          body.availability && typeof body.availability === 'string' ? JSON.parse(body.availability) : body.availability,
+        facilities:
+          body.facilities && typeof body.facilities === 'string' ? JSON.parse(body.facilities) : body.facilities,
+        propertiesOwner:
+          body.propertiesOwner && typeof body.propertiesOwner === 'string' ? JSON.parse(body.propertiesOwner) : body.propertiesOwner,
+        additionalDetails:
+          body.additionalDetails && typeof body.additionalDetails === 'string' ? JSON.parse(body.additionalDetails) : body.additionalDetails,
+        images: files?.length
+          ? files.map((file) => ({
+              imagesUrl: `/propertyImages/${file.filename}`,
+              imageName: file.filename,
+            }))
+          : body.images, // fallback
+      };
+  
+      const updated = await this.propertyService.update(id, userId, parsedBody);
+  
+      return res.status(HttpStatus.OK).json({
+        message: 'success to update property',
+        data: updated,
+      });
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to update property',
+        error: error.message,
+      });
+    }
   }
 
+  @Roles('user')
+  @UseGuards(AuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.propertyService.remove(+id);
+  async remove(@Param('id') id: string, @Res() res: Response) {
+    try {
+      if (!id || id.trim() === '') {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: "property id is invalid"
+        });
+      }
+
+      const deleteProperty = await this.propertyService.remove(id);
+
+      return res.status(HttpStatus.OK).json({
+        message: "property deleted",
+        data: deleteProperty
+      });
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        message: 'Failed to delete property type',
+        error: error.message,
+      });
+    }
   }
 }

@@ -61,6 +61,8 @@ export class CreatePropertyDto {
     };
 
     additionalDetails?: {
+        [x: string]: any;
+        length: any;
         parking_id: string;
         allow_path?: boolean;
         construction_nearby?: boolean;

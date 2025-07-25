@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException  } from '@nestjs/common';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Properties, Prisma } from '@prisma/client';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class PropertyService {
@@ -198,20 +200,192 @@ async create(body: CreatePropertyDto) {
     return findByType;
   }
 
-  // async showImage(imagesName: string){
-  //   const showImage = await this.prisma.images.findMany({
-  //     where: {
-  //       imageName: imagesName 
-  //     }
-  //   })
-  //   return showImage;
-  // }
+  async update(id: string, userId: string, body: UpdatePropertyDto) {
+        // Cek apakah property ada
+    const property = await this.prisma.properties.findUnique({
+      where: { id },
+      include: {
+        images: true,
+      },
+    });
+    
+    if (!property) {
+      throw new NotFoundException(`Property with ID ${id} not found`);
+    }
 
-  update(id: number, body: UpdatePropertyDto) {
-    return `This action updates a #${id} property`;
+    // Hapus file gambar dari sistem lokal (jika disimpan di file system)
+    for (const image of property.images) {
+      const imagePath = path.join(__dirname, '..', '..', '..', 'propertyImages', image.imageName);
+      if (fs.existsSync(imagePath)) {
+        try {
+          fs.unlinkSync(imagePath);
+          // console.log(`Gambar ${image.imageName} berhasil dihapus dari ${imagePath}`);
+        } catch (err: any) {
+          // console.error(`Gagal menghapus gambar ${image.imageName}:`, err.message);
+        }
+      } else {
+        // console.warn(`Gambar ${image.imageName} tidak ditemukan di ${imagePath}`);
+      }
+    }
+
+    // Hapus semua relasi one-to-many lama
+    await this.prisma.images.deleteMany({ where: { property_id: id } });
+    await this.prisma.additionalDetails.deleteMany({ where: { property_id: id } });
+    await this.prisma.propertiesOwner.deleteMany({ where: { property_id: id } });
+  
+    // Hapus relasi one-to-one lama
+    await this.prisma.location.deleteMany({ where: { property_id: id } });
+    await this.prisma.availability.deleteMany({ where: { property_id: id } });
+    await this.prisma.facilities.deleteMany({ where: { property_id: id } });
+  
+    // Buat ulang images
+    const imagesUpdate = body.images?.length
+      ? {
+          create: body.images.map((img) => ({
+            imagesUrl: img.imagesUrl,
+            imageName: img.imageName,
+          })),
+        }
+      : undefined;
+  
+    // Buat ulang location
+    const locationUpdate = body.location
+      ? {
+          create: {
+            general_area: body.location.general_area,
+            map_url: body.location.map_url,
+            longitude: body.location.longitude,
+            latitude: body.location.latitude,
+          },
+        }
+      : undefined;
+  
+    // Buat ulang availability
+    const availabilityUpdate = body.availability
+      ? {
+          create: {
+            available_from: body.availability.available_from,
+            available_to: body.availability.available_to,
+          },
+        }
+      : undefined;
+  
+    // Buat ulang facilities
+    const facilitiesUpdate = body.facilities
+      ? {
+          create: {
+            ...Object.fromEntries(
+              Object.entries(body.facilities).map(([key, value]) => [key, value === true])
+            ),
+          },
+        }
+      : undefined;
+  
+    // Buat ulang propertiesOwner (karena one-to-many tapi hanya satu)
+    const propertiesOwnerUpdate = body.propertiesOwner
+      ? {
+          create: {
+            ...body.propertiesOwner,
+            phone: body.propertiesOwner.phone?.toString(),
+            watsapp: body.propertiesOwner.watsapp?.toString(),
+          },
+        }
+      : undefined;
+  
+    // Buat ulang additionalDetails
+    const additionalDetailsUpdate = body.additionalDetails?.length
+      ? {
+          create: body.additionalDetails.map((detail: any) => ({
+            ...detail,
+          })),
+        }
+      : undefined;
+  
+    const { user_id, type_id, ...updateBody } = body;
+  
+    // Update property utama
+    const updatedProperty = await this.prisma.properties.update({
+      where: { id },
+      data: {
+        ...updateBody,
+        images: imagesUpdate,
+        location: locationUpdate,
+        availability: availabilityUpdate,
+        facilities: facilitiesUpdate,
+        propertiesOwner: propertiesOwnerUpdate,
+        additionalDetails: additionalDetailsUpdate,
+      },
+      include: {
+        location: true,
+        availability: true,
+        facilities: true,
+        images: true,
+        propertiesOwner: true,
+        additionalDetails: true,
+      },
+    });
+  
+    return updatedProperty;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} property`;
+  async remove(id: string) {
+    // Cek apakah property ada
+    const property = await this.prisma.properties.findUnique({
+      where: { id },
+      include: {
+        images: true,
+      },
+    });
+
+    if (!property) {
+      throw new NotFoundException(`Property with ID ${id} not found`);
+    }
+
+    // Hapus file gambar dari sistem lokal (jika disimpan di file system)
+    for (const image of property.images) {
+      const imagePath = path.join(__dirname, '..', '..', '..', 'propertyImages', image.imageName);
+      if (fs.existsSync(imagePath)) {
+        try {
+          fs.unlinkSync(imagePath);
+          // console.log(`Gambar ${image.imageName} berhasil dihapus dari ${imagePath}`);
+        } catch (err: any) {
+          // console.error(`Gagal menghapus gambar ${image.imageName}:`, err.message);
+        }
+      } else {
+        // console.warn(`Gambar ${image.imageName} tidak ditemukan di ${imagePath}`);
+      }
+    }
+
+    // Hapus semua relasi satu per satu
+    await this.prisma.images.deleteMany({
+      where: { property_id: id },
+    });
+
+    await this.prisma.location.deleteMany({
+      where: { property_id: id },
+    });
+
+    await this.prisma.availability.deleteMany({
+      where: { property_id: id },
+    });
+
+    await this.prisma.facilities.deleteMany({
+      where: { property_id: id },
+    });
+
+    await this.prisma.propertiesOwner.deleteMany({
+      where: { property_id: id },
+    });
+
+    await this.prisma.additionalDetails.deleteMany({
+      where: { property_id: id },
+    });
+
+    // Terakhir, hapus properti
+    await this.prisma.properties.delete({
+      where: { id },
+    });
+
+    return { message: `Property with ID ${id} has been deleted successfully` };
   }
 }
