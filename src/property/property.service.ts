@@ -107,6 +107,10 @@ async create(body: CreatePropertyDto) {
     }
   }>[]> {
     const getAllProperty = await this.prisma.properties.findMany({
+      where: {
+        isPublic: true, 
+        deleted_at: null
+      }, 
       include: {
         location: true,
         availability: true,
@@ -132,7 +136,8 @@ async create(body: CreatePropertyDto) {
   }>[]> {
     const getPropertyById = await this.prisma.properties.findUnique({
       where: {
-        id: id
+        id: id, 
+        deleted_at: null
       }, 
       include: {
         location: true,
@@ -159,7 +164,9 @@ async create(body: CreatePropertyDto) {
   }>[]> {
     const getAllProperty = await this.prisma.properties.findMany({
       where: {
-        user_id: user_id
+        user_id: user_id, 
+        isPublic: true, 
+        deleted_at: null
       },
       include: {
         location: true,
@@ -170,7 +177,34 @@ async create(body: CreatePropertyDto) {
         additionalDetails: true
       }
     });
+    return getAllProperty;
+  }
 
+  async findMyPrivateProperty(user_id: string): Promise<Prisma.PropertiesGetPayload<{
+    include: {
+      location: true,
+      availability: true,
+      facilities: true,
+      images: true,
+      propertiesOwner: true,
+      additionalDetails: true
+    }
+  }>[]> {
+    const getAllProperty = await this.prisma.properties.findMany({
+      where: {
+        user_id: user_id, 
+        isPublic: false, 
+        deleted_at: null
+      },
+      include: {
+        location: true,
+        availability: true,
+        facilities: true,
+        images: true,
+        propertiesOwner: true,
+        additionalDetails: true
+      }
+    });
     return getAllProperty;
   }
 
@@ -186,7 +220,9 @@ async create(body: CreatePropertyDto) {
   }>[]> {
     const findByType = await this.prisma.properties.findMany({
       where: {
-        type_id: type_id
+        type_id: type_id, 
+        isPublic: true, 
+        deleted_at: null
       }, 
         include: {
           location: true,
@@ -341,18 +377,94 @@ async create(body: CreatePropertyDto) {
       throw new NotFoundException(`Property with ID ${id} not found`);
     }
 
-    // Hapus file gambar dari sistem lokal (jika disimpan di file system)
+    // for (const image of property.images) {
+    //   const imagePath = path.join(__dirname, '..', '..', '..', 'propertyImages', image.imageName);
+    //   if (fs.existsSync(imagePath)) {
+    //     try {
+    //       fs.unlinkSync(imagePath);
+    //     } catch (err: any) {
+    //     }
+    //   } else {
+    //   }
+    // }
+
+    const now = new Date();
+
+    // Hapus semua relasi satu per satu
+    await this.prisma.images.updateMany({
+      where: { property_id: id },
+      data: {
+        deleted_at: now
+      },
+    });
+
+    await this.prisma.location.updateMany({
+      where: { property_id: id },
+      data: {
+        deleted_at: now
+      },
+    });
+
+    await this.prisma.availability.updateMany({
+      where: { property_id: id },
+      data: {
+        deleted_at: now
+      },
+    });
+
+    await this.prisma.facilities.updateMany({
+      where: { property_id: id },
+      data: {
+        deleted_at: now
+      },
+    });
+
+    await this.prisma.propertiesOwner.updateMany({
+      where: { property_id: id },
+      data: {
+        deleted_at: now
+      },
+    });
+
+    await this.prisma.additionalDetails.updateMany({
+      where: { property_id: id },
+      data: {
+        deleted_at: now
+      },
+    });
+
+    // Terakhir, hapus properti
+    await this.prisma.properties.update({
+      where: { id },
+      data: {
+        deleted_at: now
+      }
+    });
+
+    return { message: `Property with ID ${id} has been deleted successfully` };
+  }
+
+  async hardDelete(id: string) {
+    // Cek apakah property ada
+    const property = await this.prisma.properties.findUnique({
+      where: { id },
+      include: {
+        images: true,
+      },
+    });
+
+    if (!property) {
+      throw new NotFoundException(`Property with ID ${id} not found`);
+    }
+
     for (const image of property.images) {
       const imagePath = path.join(__dirname, '..', '..', '..', 'propertyImages', image.imageName);
       if (fs.existsSync(imagePath)) {
         try {
           fs.unlinkSync(imagePath);
-          // console.log(`Gambar ${image.imageName} berhasil dihapus dari ${imagePath}`);
         } catch (err: any) {
-          // console.error(`Gagal menghapus gambar ${image.imageName}:`, err.message);
         }
       } else {
-        // console.warn(`Gambar ${image.imageName} tidak ditemukan di ${imagePath}`);
       }
     }
 
@@ -386,6 +498,100 @@ async create(body: CreatePropertyDto) {
       where: { id },
     });
 
-    return { message: `Property with ID ${id} has been deleted successfully` };
+    return { message: `Property with ID ${id} has been hard deleted successfully` };
+  }
+
+  async restore(id: string) {
+    // Cek apakah property ada
+    const property = await this.prisma.properties.findUnique({
+      where: { id },
+      include: {
+        images: true,
+      },
+    });
+
+    if (!property) {
+      throw new NotFoundException(`Property with ID ${id} not found`);
+    }
+
+    // Hapus semua relasi satu per satu
+    await this.prisma.images.updateMany({
+      where: { property_id: id },
+      data: {
+        deleted_at: null
+      },
+    });
+
+    await this.prisma.location.updateMany({
+      where: { property_id: id },
+      data: {
+        deleted_at: null
+      },
+    });
+
+    await this.prisma.availability.updateMany({
+      where: { property_id: id },
+      data: {
+        deleted_at: null
+      },
+    });
+
+    await this.prisma.facilities.updateMany({
+      where: { property_id: id },
+      data: {
+        deleted_at: null
+      },
+    });
+
+    await this.prisma.propertiesOwner.updateMany({
+      where: { property_id: id },
+      data: {
+        deleted_at: null
+      },
+    });
+
+    await this.prisma.additionalDetails.updateMany({
+      where: { property_id: id },
+      data: {
+        deleted_at: null
+      },
+    });
+
+    // Terakhir, hapus properti
+    await this.prisma.properties.update({
+      where: { id },
+      data: {
+        deleted_at: null
+      }
+    });
+
+    return { message: `Property with ID ${id} has been restored successfully` };
+  }
+
+  async togglePublicStatus(id: string) {
+    const property = await this.prisma.properties.findUnique({
+      where: { id },
+      select: {
+        isPublic: true
+      }
+    });
+
+    if (!property) {
+      throw new NotFoundException(`Property with ID ${id} not found`);
+    }
+
+    const newStatus = !property.isPublic;
+
+    const updated = await this.prisma.properties.update({
+      where: { id },
+      data: {
+        isPublic: newStatus
+      }
+    });
+
+    return {
+      message: `Property with ID ${id} has been ${newStatus ? 'public' : 'private'} successfully`,
+      isPublic: updated.isPublic
+    };
   }
 }

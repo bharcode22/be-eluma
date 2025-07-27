@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res, HttpStatus, UseGuards, Req, UseInterceptors, UploadedFiles, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, HttpStatus, UseGuards, Req, UseInterceptors, UploadedFiles, Query, Put } from '@nestjs/common';
 import { Roles } from '../auth/guard/roles.decorator';
 import { AuthGuard } from '../auth/guard/auth.guard';
 import { PropertyService } from './property.service';
@@ -199,6 +199,57 @@ export class PropertyController {
 
   @Roles('user')
   @UseGuards(AuthGuard)
+  @Get('/my/private')
+  async findMyPrivateProperty(@Res() res: Response, @Req() req: Request) {
+    try {
+      const user = req.user as { id: string };
+      const user_id = user.id
+      const getAllProprties = await this.propertyService.findMyPrivateProperty(user_id);
+
+      if (getAllProprties.length === 0) {
+        return res.status(HttpStatus.NOT_FOUND).json({
+          message: "property not found, empty at database"
+        })
+      }
+
+      const formatData = getAllProprties.map(data => ({
+        id                  : data.id, 
+        user_id             : data.user_id, 
+        type_id             : data.type_id, 
+        property_tittle     : data.property_tittle, 
+        description         : data.description,  
+        number_of_bedrooms  : data.number_of_bathrooms, 
+        number_of_bathrooms : data.number_of_bathrooms, 
+        maximum_guest       : data.maximum_guest, 
+        minimum_stay        : data.minimum_stay, 
+        price               : data.price,
+        monthly_price       : data.monthly_price, 
+        yearly_price        : data.yearly_price, 
+
+        location            : data.location,
+        availability        : data.availability,
+        facilities          : data.facilities,
+        images              : data.images,
+        propertiesOwner     : data.propertiesOwner,
+        additionalDetails   : data.additionalDetails,
+      }))
+
+      return res.status(HttpStatus.OK).json({
+        message: "success to get my property", 
+        totalData: formatData.length, 
+        data: formatData, 
+      })
+
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        message: 'Failed to add users data',
+        error: error.message,
+      });
+    }
+  }
+
+  @Roles('user')
+  @UseGuards(AuthGuard)
   @Get('/type/:type_id')
   async findOneByType(@Param('type_id') type_id: string, @Res() res: Response) {
     const getByType = await this.propertyService.findByType(type_id);
@@ -302,6 +353,81 @@ export class PropertyController {
     } catch (error: any) {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
         message: 'Failed to delete property type',
+        error: error.message,
+      });
+    }
+  }
+
+  @Roles('user')
+  @UseGuards(AuthGuard)
+  @Put('/status/:id')
+  async setToggleStatus(@Param('id') id: string, @Res() res: Response) {
+    try {
+      if (!id || id.trim() === '') {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: "property id is invalid"
+        });
+      }
+
+      const setProperty = await this.propertyService.togglePublicStatus(id);
+
+      return res.status(HttpStatus.OK).json({
+        message: "property seted",
+        data: setProperty
+      });
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        message: 'Failed to set property status',
+        error: error.message,
+      });
+    }
+  }
+
+  @Roles('user')
+  @UseGuards(AuthGuard)
+  @Put('/restore/:id')
+  async restoreProperty(@Param('id') id: string, @Res() res: Response) {
+    try {
+      if (!id || id.trim() === '') {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: "property id is invalid"
+        });
+      }
+
+      const restoreProperty = await this.propertyService.restore(id);
+
+      return res.status(HttpStatus.OK).json({
+        message: "property restored",
+        data: restoreProperty
+      });
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        message: 'Failed to restore property status',
+        error: error.message,
+      });
+    }
+  }
+
+  @Roles('user')
+  @UseGuards(AuthGuard)
+  @Delete('/hard/delete/:id')
+  async hardDeleteProperty(@Param('id') id: string, @Res() res: Response) {
+    try {
+      if (!id || id.trim() === '') {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: "property id is invalid"
+        });
+      }
+
+      const restoreProperty = await this.propertyService.hardDelete(id);
+
+      return res.status(HttpStatus.OK).json({
+        message: "property hard deleted",
+        data: restoreProperty
+      });
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        message: 'Failed to restore property status',
         error: error.message,
       });
     }

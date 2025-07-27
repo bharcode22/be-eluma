@@ -58,6 +58,7 @@ model Properties {
   price               Int?
   monthly_price       Int? 
   yearly_price        Int? 
+  isPublic            Boolean   @default(true)
 
   location            Location[]
   availability        Availability[]
