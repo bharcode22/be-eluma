@@ -439,7 +439,8 @@ export class PropertyController {
   @UseInterceptors(PropertyImagesInterceptor())
   async updateImagesController(
     @Param('id') id: string,
-    @UploadedFiles() files: multer.File[],
+    @UploadedFiles() files: multer.File[], 
+    @Body('existingImages') existingImagesJson: string,
     @Res() res: Response
   ) {
     try {
@@ -449,20 +450,34 @@ export class PropertyController {
         });
       }
 
-      if (!files || files.length === 0) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
-          message: "No images uploaded"
-        });
+      // Parse data gambar lama dari body
+      let existingImages: { imagesUrl: string; imageName: string }[] = [];
+      if (existingImagesJson) {
+        try {
+          existingImages = JSON.parse(existingImagesJson);
+        } catch (err) {
+          return res.status(HttpStatus.BAD_REQUEST).json({
+            message: "Invalid existingImages format"
+          });
+        }
       }
 
-      // Map hasil upload ke format yang sesuai DB
-      const imagesData = files.map(file => ({
+      // Gabungkan gambar lama yang dipertahankan + gambar baru
+      const newImages = files.map(file => ({
         imagesUrl: `/propertyImages/${file.filename}`,
         imageName: file.filename
       }));
 
-      // Kirim ke service untuk update semua gambar
-      const updatedImages = await this.propertyService.updateImagesMany(id, imagesData);
+      const allImages = [...existingImages, ...newImages];
+
+      if (allImages.length === 0) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: "No images provided"
+        });
+      }
+
+      // Update ke database
+      const updatedImages = await this.propertyService.updateImagesMany(id, allImages);
 
       return res.status(HttpStatus.OK).json({
         message: "Property images updated successfully",
