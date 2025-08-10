@@ -432,4 +432,69 @@ export class PropertyController {
       });
     }
   }
+
+  @Roles('user')
+  @UseGuards(AuthGuard)
+  @Put('/update/property/:id/images')
+  @UseInterceptors(PropertyImagesInterceptor())
+  async updateImagesController(
+    @Param('id') id: string,
+    @UploadedFiles() files: multer.File[],
+    @Res() res: Response
+  ) {
+    try {
+      if (!id || id.trim() === '') {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: "Property ID is invalid"
+        });
+      }
+
+      if (!files || files.length === 0) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: "No images uploaded"
+        });
+      }
+
+      // Map hasil upload ke format yang sesuai DB
+      const imagesData = files.map(file => ({
+        imagesUrl: `/propertyImages/${file.filename}`,
+        imageName: file.filename
+      }));
+
+      // Kirim ke service untuk update semua gambar
+      const updatedImages = await this.propertyService.updateImagesMany(id, imagesData);
+
+      return res.status(HttpStatus.OK).json({
+        message: "Property images updated successfully",
+        data: updatedImages
+      });
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        message: 'Failed to update property images',
+        error: error.message,
+      });
+    }
+  }
+
+  @Roles('user')
+  @UseGuards(AuthGuard)
+  @Get('/:id/images')
+  async getImagesController(@Param('id') id: string, @Res() res: Response) {
+    try {
+      if (!id || id.trim() === '') {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: "Property ID is invalid"
+        });
+      }
+
+      const images = await this.propertyService.getImagesByPropertyId(id);
+
+      return res.status(HttpStatus.OK).json(images);
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to get images',
+        error: error.message,
+      });
+    }
+  }
 }

@@ -244,37 +244,30 @@ async create(body: CreatePropertyDto) {
         images: true,
       },
     });
-    
+
     if (!property) {
       throw new NotFoundException(`Property with ID ${id} not found`);
     }
 
-    // Hapus file gambar dari sistem lokal (jika disimpan di file system)
-    for (const image of property.images) {
-      const imagePath = path.join(__dirname, '..', '..', '..', 'propertyImages', image.imageName);
-      if (fs.existsSync(imagePath)) {
-        try {
-          fs.unlinkSync(imagePath);
-          // console.log(`Gambar ${image.imageName} berhasil dihapus dari ${imagePath}`);
-        } catch (err: any) {
-          // console.error(`Gagal menghapus gambar ${image.imageName}:`, err.message);
+    // Cek apakah ada gambar baru
+    if (body.images?.length) {
+      // Hapus file gambar lama
+      for (const image of property.images) {
+        const imagePath = path.join(__dirname, '..', '..', '..', 'propertyImages', image.imageName);
+        if (fs.existsSync(imagePath)) {
+          try {
+            fs.unlinkSync(imagePath);
+          } catch (err: any) {
+            console.error(`Gagal menghapus gambar ${image.imageName}:`, err.message);
+          }
         }
-      } else {
-        // console.warn(`Gambar ${image.imageName} tidak ditemukan di ${imagePath}`);
       }
+
+      // Hapus gambar di DB
+      await this.prisma.images.deleteMany({ where: { property_id: id } });
     }
 
-    // Hapus semua relasi one-to-many lama
-    await this.prisma.images.deleteMany({ where: { property_id: id } });
-    await this.prisma.additionalDetails.deleteMany({ where: { property_id: id } });
-    await this.prisma.propertiesOwner.deleteMany({ where: { property_id: id } });
-  
-    // Hapus relasi one-to-one lama
-    await this.prisma.location.deleteMany({ where: { property_id: id } });
-    await this.prisma.availability.deleteMany({ where: { property_id: id } });
-    await this.prisma.facilities.deleteMany({ where: { property_id: id } });
-  
-    // Buat ulang images
+    // Buat ulang images (hanya jika ada gambar baru)
     const imagesUpdate = body.images?.length
       ? {
           create: body.images.map((img) => ({
@@ -283,7 +276,16 @@ async create(body: CreatePropertyDto) {
           })),
         }
       : undefined;
+
+    // Hapus semua relasi one-to-many lama
+    await this.prisma.additionalDetails.deleteMany({ where: { property_id: id } });
+    await this.prisma.propertiesOwner.deleteMany({ where: { property_id: id } });
   
+    // Hapus relasi one-to-one lama
+    await this.prisma.location.deleteMany({ where: { property_id: id } });
+    await this.prisma.availability.deleteMany({ where: { property_id: id } });
+    await this.prisma.facilities.deleteMany({ where: { property_id: id } });
+
     // Buat ulang location
     const locationUpdate = body.location
       ? {
@@ -592,6 +594,113 @@ async create(body: CreatePropertyDto) {
     return {
       message: `Property with ID ${id} has been ${newStatus ? 'public' : 'private'} successfully`,
       isPublic: updated.isPublic
+    };
+  }
+
+  async updateImagesMany(
+    propertyId: string,
+    imagesData: { imagesUrl: string; imageName: string }[]
+  ) {
+    const property = await this.prisma.properties.findUnique({
+      where: { id: propertyId },
+      select: { id: true }
+    });
+
+    if (!property) {
+      throw new NotFoundException(`Property with ID ${propertyId} not found`);
+    }
+
+    // Ambil daftar gambar lama dari DB
+    const oldImages = await this.prisma.images.findMany({
+      where: { property_id: propertyId }
+    });
+
+    // Buat set nama gambar untuk perbandingan
+    const oldImageNames = new Set(oldImages.map(img => img.imageName));
+    const newImageNames = new Set(imagesData.map(img => img.imageName));
+
+    // 1️⃣ Hapus gambar yang tidak ada di upload baru
+    const imagesToDelete = oldImages.filter(img => !newImageNames.has(img.imageName));
+    if (imagesToDelete.length > 0) {
+      // Hapus dari DB
+      await this.prisma.images.deleteMany({
+        where: {
+          id: { in: imagesToDelete.map(img => img.id) }
+        }
+      });
+
+      // Opsional: hapus file fisik
+      imagesToDelete.forEach(img => {
+        const filePath = path.join('./propertyImages', img.imageName);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      });
+    }
+
+    // 2️⃣ Update gambar yang sudah ada (jika URL berubah)
+    for (const img of imagesData) {
+      if (oldImageNames.has(img.imageName)) {
+        await this.prisma.images.updateMany({
+          where: { property_id: propertyId, imageName: img.imageName },
+          data: {
+            imagesUrl: img.imagesUrl,
+            updated_at: new Date()
+          }
+        });
+      }
+    }
+
+    // 3️⃣ Tambahkan gambar baru yang belum ada
+    const imagesToAdd = imagesData.filter(img => !oldImageNames.has(img.imageName));
+    if (imagesToAdd.length > 0) {
+      await this.prisma.images.createMany({
+        data: imagesToAdd.map(img => ({
+          property_id: propertyId,
+          imagesUrl: img.imagesUrl,
+          imageName: img.imageName
+        }))
+      });
+    }
+
+    // Ambil data terbaru
+    const updatedImages = await this.prisma.images.findMany({
+      where: { property_id: propertyId }
+    });
+
+    return {
+      message: 'Images updated successfully',
+      total: updatedImages.length,
+      images: updatedImages
+    };
+  }
+
+  async getImagesByPropertyId(propertyId: string) {
+    const property = await this.prisma.properties.findUnique({
+      where: { id: propertyId },
+      select: { id: true }
+    });
+
+    if (!property) {
+      throw new NotFoundException(`Property with ID ${propertyId} not found`);
+    }
+
+    const images = await this.prisma.images.findMany({
+      where: { property_id: propertyId },
+      select: {
+        id: true,
+        imagesUrl: true,
+        imageName: true,
+        created_at: true,
+        updated_at: true
+      },
+      orderBy: { created_at: 'asc' }
+    });
+
+    return {
+      message: `Found ${images.length} images for property ID ${propertyId}`,
+      total: images.length,
+      images
     };
   }
 }
