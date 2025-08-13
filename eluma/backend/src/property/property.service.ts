@@ -11,6 +11,10 @@ export class PropertyService {
   constructor(private prisma: PrismaService) {}
 
 async create(body: CreatePropertyDto) {
+    const letters = Math.random().toString(36).substring(2, 5).toUpperCase();
+    const numbers = Math.floor(1000 + Math.random() * 9000);
+    const code = `${letters}${numbers}`;
+
   const createProperty = await this.prisma.properties.create({
     data: {
       id: body.id,
@@ -25,6 +29,7 @@ async create(body: CreatePropertyDto) {
       price: body.price,
       monthly_price: body.monthly_price,
       yearly_price: body.yearly_price,
+      property_code: code,
 
       location: body.location
         ? {

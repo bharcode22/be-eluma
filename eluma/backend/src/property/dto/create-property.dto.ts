@@ -11,6 +11,7 @@ export class CreatePropertyDto {
     price?: number;
     monthly_price?: number;
     yearly_price?: number;
+    property_code?: string;
 
     location?: {
         general_area?: string;

@@ -67,6 +67,7 @@ export class PropertyController {
 
       const formatData = getAllProprties.map(data => ({
         id                  : data.id, 
+        property_code       : data.property_code,
         user_id             : data.user_id, 
         type_id             : data.type_id, 
         property_tittle     : data.property_tittle, 
@@ -124,6 +125,7 @@ export class PropertyController {
         price               : data.price,
         monthly_price       : data.monthly_price, 
         yearly_price        : data.yearly_price, 
+        property_code       : data.property_code,
 
         location            : data.location,
         availability        : data.availability,
@@ -174,6 +176,7 @@ export class PropertyController {
         price               : data.price,
         monthly_price       : data.monthly_price, 
         yearly_price        : data.yearly_price, 
+        property_code       : data.property_code,
 
         location            : data.location,
         availability        : data.availability,

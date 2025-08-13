@@ -50,6 +50,7 @@ model Properties {
   type_id             String    @db.Uuid
 
   property_tittle     String? 
+  property_code       String? 
   description         String? 
   number_of_bedrooms  Int? 
   number_of_bathrooms Int?
