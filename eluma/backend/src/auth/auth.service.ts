@@ -1,4 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { OAuth2Client } from 'google-auth-library';
 import { PrismaService } from './../../prisma/prisma.service';
 import { Role, User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
@@ -14,7 +15,8 @@ export class AuthService {
     constructor(
         private prisma: PrismaService,
         private jwtService: JwtService,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService, 
+        private client: OAuth2Client
     ){}
 
     async validateToken(token: string): Promise<any> {
@@ -105,5 +107,58 @@ export class AuthService {
         });
     
         return blacklistedToken
+    }
+
+    async verifyGoogleLogin(googleToken: string): Promise<{ access_token: string; user: any }> {
+        // 1. Verifikasi token Google
+        const ticket = await this.client.verifyIdToken({
+            idToken: googleToken,
+            audience: this.configService.get<string>(process.env.GOOGLE_CLIENT_ID),
+        });
+
+        const payload = ticket.getPayload();
+        if (!payload) {
+            throw new UnauthorizedException('Invalid Google token');
+        }
+
+        const { email, name, picture } = payload;
+        if (!email) {
+            throw new UnauthorizedException('Google account has no email');
+        }
+
+        // 2. Cek apakah user sudah ada
+        let user = await this.prisma.user.findUnique({ where: { email } });
+
+        // 3. Kalau belum ada → buat user baru
+        if (!user) {
+            user = await this.prisma.user.create({
+                data: {
+                    email,
+                    name: name || '',
+                    username: name || '',
+                    avatar: picture || '',
+                    provider: 'google',
+                    role: 'user',
+                },
+            });
+        }
+
+        // 4. Generate JWT
+        const jwtSecret = this.configService.get<string>('JWT_SECRET');
+        const tokenPayload = { id: user.id, email: user.email, role: user.role };
+        const access_token = this.jwtService.sign(tokenPayload, { secret: jwtSecret });
+
+        // 5. Return user dan token
+        return {
+            user: {
+                id: user.id,
+                username: user.username,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                avatar: user.avatar,
+            },
+            access_token,
+        };
     }
 }
