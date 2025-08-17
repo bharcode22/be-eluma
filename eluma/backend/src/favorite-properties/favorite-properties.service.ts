@@ -45,15 +45,12 @@ export class FavoritePropertiesService {
     return getProperties;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} favoriteProperty`;
-  }
-
-  update(id: number, updateFavoritePropertyDto: UpdateFavoritePropertyDto) {
-    return `This action updates a #${id} favoriteProperty`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} favoriteProperty`;
+  async remove(id: string) {
+    const unsaveProperty = await this.prisma.favoriteProperties.delete({
+      where: {
+        id: id
+      }
+    })
+    return unsaveProperty;
   }
 }
