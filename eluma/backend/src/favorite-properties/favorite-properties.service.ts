@@ -27,6 +27,26 @@ export class FavoritePropertiesService {
     })
     return getProperties;
   }
+  
+  async geteSaveFavProp(user_id: string, property_id: string) {
+    const getProperties = await this.prisma.favoriteProperties.findMany({
+      where: {
+        user_id: user_id, 
+        property_id: property_id
+      }
+    })
+    return getProperties;
+  }
+
+  async removeSaveFavProp(user_id: string, property_id: string) {
+    const getProperties = await this.prisma.favoriteProperties.deleteMany({
+      where: {
+        user_id: user_id, 
+        property_id: property_id
+      }
+    })
+    return getProperties;
+  }
 
   async getProperties(propertyIds: string[]) {
     const getProperties = await this.prisma.properties.findMany({

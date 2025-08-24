@@ -17,16 +17,30 @@ export class FavoritePropertiesController {
       const user = req.user as { id: string };
       const user_id = user.id;
 
-      const saveProp = await this.favoritePropertiesService.saveProperty(
-        createFavoritePropertyDto,
-        user_id,
-        property_id
-      );
+      const getFavExistProperty = await this.favoritePropertiesService.geteSaveFavProp(user_id, property_id)
+
+      let result:  any = []
+      if (getFavExistProperty.length > 0) {
+        const unsaveProp = await this.favoritePropertiesService.removeSaveFavProp(
+          user_id,
+          property_id
+        );
+
+        result.push(unsaveProp)
+      } else {
+        const saveProp = await this.favoritePropertiesService.saveProperty(
+          createFavoritePropertyDto,
+          user_id,
+          property_id
+        );
+        result.push(saveProp)
+      }
 
       return res.status(HttpStatus.CREATED).json({
-        message: 'success to save property',
-        data: saveProp,
+        message: 'fav properties success to proccessed',
+        data: result,
       });
+
     } catch (error: any) {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: 'Failed to create property',

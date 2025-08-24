@@ -217,6 +217,7 @@ export class PropertyController {
 
       const formatData = getAllProprties.map(data => ({
         id                  : data.id, 
+        property_code       : data.property_code, 
         user_id             : data.user_id, 
         type_id             : data.type_id, 
         property_tittle     : data.property_tittle, 
