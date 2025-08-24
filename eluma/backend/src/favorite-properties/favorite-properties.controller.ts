@@ -89,6 +89,28 @@ export class FavoritePropertiesController {
     }
   }
 
+  @Get(':property_id')
+  @Roles('user')
+  @UseGuards(AuthGuard)
+  async isSaveFavProp(@Res() res: Response, @Req() req: Request, @Param('property_id') property_id: string,) {
+    try {
+      const user = req.user as { id: string };
+      const user_id = user.id;
+
+      const isFav = await this.favoritePropertiesService.isPropertySave(user_id, property_id);
+
+      return res.status(HttpStatus.OK).json({
+          status: isFav
+      });
+
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to get favorite properties',
+        error: error.message,
+      });
+    }
+  }
+
   @Delete(':id')
   @Roles('user')
   @UseGuards(AuthGuard)

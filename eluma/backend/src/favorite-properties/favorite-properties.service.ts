@@ -48,6 +48,19 @@ export class FavoritePropertiesService {
     return getProperties;
   }
 
+  async isPropertySave(user_id: string, property_id: string) {
+    const getProperties = await this.prisma.favoriteProperties.findFirst({
+      where: {
+        user_id: user_id, 
+        property_id: property_id
+      },
+      select: {
+        status: true, 
+      }
+    })
+    return getProperties?.status === true;
+  }
+
   async getProperties(propertyIds: string[]) {
     const getProperties = await this.prisma.properties.findMany({
       where: {
