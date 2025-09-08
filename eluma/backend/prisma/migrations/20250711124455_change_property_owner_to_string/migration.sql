@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "PropertiesOwner" ALTER COLUMN "phone" SET DATA TYPE TEXT,
-ALTER COLUMN "watsapp" SET DATA TYPE TEXT;

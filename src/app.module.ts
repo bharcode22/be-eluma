@@ -10,6 +10,7 @@ import { ImagesModule } from './images/images.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { GeneralAreaModule } from './general-area/general-area.module';
+import { FavoritePropertiesModule } from './favorite-properties/favorite-properties.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { GeneralAreaModule } from './general-area/general-area.module';
     PropertyModule,
     ImagesModule,
     GeneralAreaModule,
+    FavoritePropertiesModule,
   ],
   controllers: [
     UsersController 

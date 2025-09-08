@@ -20,10 +20,12 @@ enum Role {
 
 model User {
   id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username            String
-  email               String    @unique
-  name                String
-  password            String
+  username            String?
+  email               String?    @unique
+  name                String?
+  password            String?
+  avatar              String?
+  provider            String?
 
   role                Role      @default(user)
   properties          Properties[]
@@ -50,6 +52,7 @@ model Properties {
   type_id             String    @db.Uuid
 
   property_tittle     String? 
+  property_code       String? 
   description         String? 
   number_of_bedrooms  Int? 
   number_of_bathrooms Int?
@@ -184,7 +187,7 @@ model AdditionalDetails {
 
 model View {
   id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  Additional_id   String    @db.Uuid
+  Additional_id       String    @db.Uuid
   rice_field          Boolean   @default(false)
   pool_view           Boolean   @default(false)
   beach_view          Boolean   @default(false)

@@ -4,10 +4,14 @@ import { AuthService } from './auth.service';
 import * as moment from 'moment';
 import { RegisDTO } from './dto/register-auth.dto';
 import { LoginDTO } from './dto/login-auth.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private authService: AuthService){}
+    constructor(
+        private authService: AuthService, 
+        private readonly jwtService: JwtService
+    ){}
 
     @Post('register')
     async register( @Body() body: RegisDTO, @Res() res: Response ) {
@@ -77,6 +81,23 @@ export class AuthController {
         } catch (error: any) {
             return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
                 message: 'Logout failed',
+                error: error.message,
+            });
+        }
+    }
+
+    @Post('google-login')
+    async googleLogin(@Body('token') token: string, @Res() res: Response) {
+        try {
+            const result = await this.authService.verifyGoogleLogin(token);
+
+            return res.status(HttpStatus.OK).json({
+                message: 'Google login successful',
+                ...result
+            });
+        } catch (error: any) {
+            return res.status(HttpStatus.UNAUTHORIZED).json({
+                message: 'Login failed',
                 error: error.message,
             });
         }
