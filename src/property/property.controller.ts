@@ -33,7 +33,7 @@ export class PropertyController {
         availability: body.availability ? JSON.parse(body.availability) : undefined,
         facilities: body.facilities ? JSON.parse(body.facilities) : undefined,
         propertiesOwner: body.propertiesOwner ? JSON.parse(body.propertiesOwner) : undefined,
-        // additionalDetails: body.additionalDetails ? JSON.parse(body.additionalDetails) : undefined,
+        additionalDetails: body.additionalDetails ? JSON.parse(body.additionalDetails) : undefined,
         images: files.map((file) => ({
           imagesUrl: `/propertyImages/${file.filename}`,
           imageName: file.filename
@@ -287,14 +287,76 @@ export class PropertyController {
       })
   }
 
+  // @Roles('user')
+  // @UseGuards(AuthGuard)
+  // @Patch(':id')
+  // @UseInterceptors(PropertyImagesInterceptor())
+  // async update( @Param('id') id: string, @Body() body: any, @Req() req: Request, @Res() res: Response, @UploadedFiles() files: multer.File[] ) {
+  //   try {
+  //     const user = req.user as { id: string };
+  //     const userId = user?.id;
+  
+  //     const parsedBody = {
+  //       ...body,
+  //       number_of_bedrooms: body.number_of_bedrooms ? parseInt(body.number_of_bedrooms) : undefined,
+  //       number_of_bathrooms: body.number_of_bathrooms ? parseInt(body.number_of_bathrooms) : undefined,
+  //       maximum_guest: body.maximum_guest ? parseInt(body.maximum_guest) : undefined,
+  //       minimum_stay: body.minimum_stay ? parseInt(body.minimum_stay) : undefined,
+  //       price: body.price ? parseFloat(body.price) : undefined,
+  //       monthly_price: body.monthly_price ? parseFloat(body.monthly_price) : undefined,
+  //       yearly_price: body.yearly_price ? parseFloat(body.yearly_price) : undefined,
+  //       location:
+  //         body.location && typeof body.location === 'string' ? JSON.parse(body.location) : body.location,
+  //       availability:
+  //         body.availability && typeof body.availability === 'string' ? JSON.parse(body.availability) : body.availability,
+  //       facilities:
+  //         body.facilities && typeof body.facilities === 'string' ? JSON.parse(body.facilities) : body.facilities,
+  //       propertiesOwner:
+  //         body.propertiesOwner && typeof body.propertiesOwner === 'string' ? JSON.parse(body.propertiesOwner) : body.propertiesOwner,
+  //       additionalDetails:
+  //         body.additionalDetails && typeof body.additionalDetails === 'string' ? JSON.parse(body.additionalDetails) : body.additionalDetails,
+  //       images: files?.length
+  //         ? files.map((file) => ({
+  //             imagesUrl: `/propertyImages/${file.filename}`,
+  //             imageName: file.filename,
+  //           }))
+  //         : body.images, // fallback
+  //     };
+  
+  //     const updated = await this.propertyService.update(id, userId, parsedBody);
+  
+  //     return res.status(HttpStatus.OK).json({
+  //       message: 'success to update property',
+  //       data: updated,
+  //     });
+  //   } catch (error: any) {
+  //     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+  //       message: 'Failed to update property',
+  //       error: error.message,
+  //     });
+  //   }
+  // }
+
   @Roles('user')
   @UseGuards(AuthGuard)
   @Patch(':id')
   @UseInterceptors(PropertyImagesInterceptor())
-  async update( @Param('id') id: string, @Body() body: any, @Req() req: Request, @Res() res: Response, @UploadedFiles() files: multer.File[] ) {
+  async update(
+    @Param('id') id: string,
+    @Body() body: any,
+    @Req() req: Request,
+    @Res() res: Response,
+    @UploadedFiles() files: multer.File[],
+  ) {
     try {
       const user = req.user as { id: string };
       const userId = user?.id;
+  
+      if (!userId) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          message: 'Unauthorized: user not found in token',
+        });
+      }
   
       const parsedBody = {
         ...body,
@@ -305,22 +367,17 @@ export class PropertyController {
         price: body.price ? parseFloat(body.price) : undefined,
         monthly_price: body.monthly_price ? parseFloat(body.monthly_price) : undefined,
         yearly_price: body.yearly_price ? parseFloat(body.yearly_price) : undefined,
-        location:
-          body.location && typeof body.location === 'string' ? JSON.parse(body.location) : body.location,
-        availability:
-          body.availability && typeof body.availability === 'string' ? JSON.parse(body.availability) : body.availability,
-        facilities:
-          body.facilities && typeof body.facilities === 'string' ? JSON.parse(body.facilities) : body.facilities,
-        propertiesOwner:
-          body.propertiesOwner && typeof body.propertiesOwner === 'string' ? JSON.parse(body.propertiesOwner) : body.propertiesOwner,
-        additionalDetails:
-          body.additionalDetails && typeof body.additionalDetails === 'string' ? JSON.parse(body.additionalDetails) : body.additionalDetails,
+        location: typeof body.location === 'string' ? JSON.parse(body.location) : body.location,
+        availability: typeof body.availability === 'string' ? JSON.parse(body.availability) : body.availability,
+        facilities: typeof body.facilities === 'string' ? JSON.parse(body.facilities) : body.facilities,
+        propertiesOwner: typeof body.propertiesOwner === 'string' ? JSON.parse(body.propertiesOwner) : body.propertiesOwner,
+        additionalDetails: typeof body.additionalDetails === 'string' ? JSON.parse(body.additionalDetails) : body.additionalDetails,
         images: files?.length
           ? files.map((file) => ({
               imagesUrl: `/propertyImages/${file.filename}`,
               imageName: file.filename,
             }))
-          : body.images, // fallback
+          : (typeof body.images === 'string' ? JSON.parse(body.images) : body.images),
       };
   
       const updated = await this.propertyService.update(id, userId, parsedBody);
@@ -330,12 +387,13 @@ export class PropertyController {
         data: updated,
       });
     } catch (error: any) {
+      console.error('❌ Update property error:', error);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: 'Failed to update property',
-        error: error.message,
+        error: error.code || error.message,
       });
     }
-  }
+  }  
 
   @Roles('user')
   @UseGuards(AuthGuard)

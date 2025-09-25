@@ -80,13 +80,52 @@ async create(body: CreatePropertyDto) {
           }
         : undefined,
 
+      // additionalDetails: body.additionalDetails
+      //   ? {
+      //       create: {
+      //         ...body.additionalDetails,
+      //       },
+      //     }
+      //   : undefined,
+
       additionalDetails: body.additionalDetails
-        ? {
-            create: {
-              ...body.additionalDetails,
-            },
-          }
-        : undefined,
+      ? {
+          create: {
+            cleaning_requency: body.additionalDetails.cleaning_requency,
+            linen_chaneg: body.additionalDetails.linen_chaneg,
+            allow_path: body.additionalDetails.allow_path,
+            construction_nearby: body.additionalDetails.construction_nearby,
+    
+            parking: body.additionalDetails.parking
+              ? {
+                  create: {
+                    car_parking: body.additionalDetails.parking.car_parking,
+                    bike_parking: body.additionalDetails.parking.bike_parking,
+                    both_car_and_bike: body.additionalDetails.parking.both_car_and_bike,
+                  },
+                }
+              : undefined,
+    
+            view: body.additionalDetails.view
+              ? {
+                  create: {
+                    beach_view: body.additionalDetails.view.beach_view,
+                    garden_view: body.additionalDetails.view.garden_view,
+                    jungle_view: body.additionalDetails.view.jungle_view,
+                    montain_view: body.additionalDetails.view.montain_view,
+                    ocean_view: body.additionalDetails.view.ocean_view,
+                    pool_view: body.additionalDetails.view.pool_view,
+                    rice_field: body.additionalDetails.view.rice_field,
+                    sunrise_view: body.additionalDetails.view.sunrise_view,
+                    sunset_view: body.additionalDetails.view.sunset_view,
+                    volcano_view: body.additionalDetails.view.volcano_view,
+                  },
+                }
+              : undefined,
+          },
+        }
+      : undefined,
+
     },
     include: {
       location: true,
@@ -179,7 +218,12 @@ async create(body: CreatePropertyDto) {
         facilities: true,
         images: true,
         propertiesOwner: true,
-        additionalDetails: true
+        additionalDetails: {
+          include: {
+            parking: true,
+            view: true,
+          },
+        },
       }
     });
     return getAllProperty;
@@ -282,8 +326,36 @@ async create(body: CreatePropertyDto) {
         }
       : undefined;
 
+      // const property = await this.prisma.properties.findUnique({
+      //   where: { id },
+      //   include: { images: true },
+      // });
+      
+      if (!property) {
+        throw new NotFoundException(`Property with ID ${id} not found`);
+      }
+      
+      // Cari additionalDetails dulu
+      const addId = await this.prisma.additionalDetails.findMany({
+        where: { property_id: id },
+        select: { id: true }
+      });
+      
+      // Hapus child View & Parking hanya kalau ada additionalDetails
+      if (addId.length > 0) {
+        await this.prisma.view.deleteMany({
+          where: { additional_details_id: addId[0].id },
+        });
+      
+        await this.prisma.parking.deleteMany({
+          where: { additional_details_id: addId[0].id },
+        });
+      
+        // Baru hapus AdditionalDetails
+        await this.prisma.additionalDetails.deleteMany({ where: { property_id: id } });
+      }
+
     // Hapus semua relasi one-to-many lama
-    await this.prisma.additionalDetails.deleteMany({ where: { property_id: id } });
     await this.prisma.propertiesOwner.deleteMany({ where: { property_id: id } });
   
     // Hapus relasi one-to-one lama
@@ -335,12 +407,20 @@ async create(body: CreatePropertyDto) {
         }
       : undefined;
   
-    // Buat ulang additionalDetails
-    const additionalDetailsUpdate = body.additionalDetails?.length
+      const additionalDetailsUpdate = body.additionalDetails
       ? {
-          create: body.additionalDetails.map((detail: any) => ({
-            ...detail,
-          })),
+          create: {
+            cleaning_requency: body.additionalDetails.cleaning_requency,
+            linen_chaneg: body.additionalDetails.linen_chaneg,
+            allow_path: body.additionalDetails.allow_path,
+            construction_nearby: body.additionalDetails.construction_nearby,
+            view: body.additionalDetails.view
+              ? { create: body.additionalDetails.view }
+              : undefined,
+            parking: body.additionalDetails.parking
+              ? { create: body.additionalDetails.parking }
+              : undefined,
+          },
         }
       : undefined;
   

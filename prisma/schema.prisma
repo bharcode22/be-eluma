@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,249 +7,213 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  admin
-  user
-}
-
 model User {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username            String?
-  email               String?    @unique
-  name                String?
-  password            String?
-  avatar              String?
-  provider            String?
-
-  role                Role      @default(user)
-  properties          Properties[]
-
-  created_at          DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime? @db.Timestamptz(6)
+  id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username   String?
+  email      String?      @unique
+  name       String?
+  password   String?
+  role       Role         @default(user)
+  created_at DateTime     @default(now()) @db.Timestamptz(6)
+  updated_at DateTime     @default(now()) @db.Timestamptz(6)
+  deleted_at DateTime?    @db.Timestamptz(6)
+  avatar     String?
+  provider   String?
+  properties Properties[]
 }
 
 model PropertyType {
   id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type_name  String?
-
-  properties Properties[]
-
   created_at DateTime     @default(now()) @db.Timestamptz(6)
   updated_at DateTime     @default(now()) @db.Timestamptz(6)
   deleted_at DateTime?    @db.Timestamptz(6)
+  properties Properties[]
 }
 
 model Properties {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id             String    @db.Uuid
-  type_id             String    @db.Uuid
-
-  property_tittle     String? 
-  property_code       String? 
-  description         String? 
-  number_of_bedrooms  Int? 
+  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id             String             @db.Uuid
+  type_id             String             @db.Uuid
+  property_tittle     String?
+  description         String?
+  number_of_bedrooms  Int?
   number_of_bathrooms Int?
   maximum_guest       Int?
-  minimum_stay        Int? 
+  minimum_stay        Int?
   price               Int?
-  monthly_price       Int? 
-  yearly_price        Int? 
-  isPublic            Boolean   @default(true)
-
-  location            Location[]
+  monthly_price       Int?
+  yearly_price        Int?
+  created_at          DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime           @default(now()) @db.Timestamptz(6)
+  deleted_at          DateTime?          @db.Timestamptz(6)
+  isPublic            Boolean            @default(true)
+  property_code       String?
+  additionalDetails   AdditionalDetails?
   availability        Availability[]
   facilities          Facilities[]
   images              Images[]
+  location            Location[]
+  propertyType        PropertyType       @relation(fields: [type_id], references: [id])
+  user                User               @relation(fields: [user_id], references: [id])
   propertiesOwner     PropertiesOwner[]
-  additionalDetails   AdditionalDetails[]
-
-  propertyType        PropertyType  @relation(fields: [type_id], references: [id])
-  user                User          @relation(fields: [user_id], references: [id])
-
-  created_at          DateTime      @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime      @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime?     @db.Timestamptz(6)
 }
 
 model Location {
-  id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  property_id         String       @db.Uuid
-  general_area        String?
-  map_url             String?
-  longitude           String?
-  latitude            String?
-
-  properties          Properties?  @relation(fields: [property_id], references: [id])
-
-  created_at          DateTime     @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime     @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime?    @db.Timestamptz(6)
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  property_id  String     @db.Uuid
+  general_area String?
+  map_url      String?
+  longitude    String?
+  latitude     String?
+  created_at   DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime   @default(now()) @db.Timestamptz(6)
+  deleted_at   DateTime?  @db.Timestamptz(6)
+  properties   Properties @relation(fields: [property_id], references: [id])
 }
 
 model Availability {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  property_id         String?   @db.Uuid
-  available_from      DateTime?
-  available_to        DateTime?
-
-  properties          Properties? @relation(fields: [property_id], references: [id])
-
-  created_at          DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime? @db.Timestamptz(6)
+  id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  property_id    String?     @db.Uuid
+  available_from DateTime?
+  available_to   DateTime?
+  created_at     DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime    @default(now()) @db.Timestamptz(6)
+  deleted_at     DateTime?   @db.Timestamptz(6)
+  properties     Properties? @relation(fields: [property_id], references: [id])
 }
 
 model Facilities {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  property_id         String    @db.Uuid
-  wifi                Boolean?  @default(false)
-  washing_machine     Boolean   @default(false)
-  coffee_maker        Boolean   @default(false)
-  celling_fan         Boolean   @default(false)
-  kettle              Boolean   @default(false)
-  air_conditioning    Boolean   @default(false)
-  tv                  Boolean   @default(false)
-  game_console        Boolean   @default(false)
-  private_entrance    Boolean   @default(false)
-  microwave           Boolean   @default(false)
-  pool                Boolean   @default(false)
-  beach_access        Boolean   @default(false)
-  drying_machine      Boolean   @default(false)
-  workspace_area      Boolean   @default(false)
-  toaster             Boolean   @default(false)
-  kitchen             Boolean   @default(false)
-  gym                 Boolean   @default(false)
-  refrigenerator      Boolean   @default(false)
-  fridge              Boolean   @default(false)
-  security            Boolean   @default(false)
-
-  properties          Properties? @relation(fields: [property_id], references: [id])
-
-  created_at          DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime? @db.Timestamptz(6)
-} 
+  id               String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  property_id      String     @db.Uuid
+  created_at       DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime   @default(now()) @db.Timestamptz(6)
+  deleted_at       DateTime?  @db.Timestamptz(6)
+  air_conditioning Boolean    @default(false)
+  beach_access     Boolean    @default(false)
+  celling_fan      Boolean    @default(false)
+  coffee_maker     Boolean    @default(false)
+  drying_machine   Boolean    @default(false)
+  fridge           Boolean    @default(false)
+  game_console     Boolean    @default(false)
+  gym              Boolean    @default(false)
+  kettle           Boolean    @default(false)
+  kitchen          Boolean    @default(false)
+  microwave        Boolean    @default(false)
+  pool             Boolean    @default(false)
+  private_entrance Boolean    @default(false)
+  refrigenerator   Boolean    @default(false)
+  security         Boolean    @default(false)
+  toaster          Boolean    @default(false)
+  tv               Boolean    @default(false)
+  washing_machine  Boolean    @default(false)
+  wifi             Boolean?   @default(false)
+  workspace_area   Boolean    @default(false)
+  properties       Properties @relation(fields: [property_id], references: [id])
+}
 
 model Images {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  property_id         String    @db.Uuid
-  imagesUrl           String? 
-  imageName           String? 
-
-  properties          Properties? @relation(fields: [property_id], references: [id])
-
-  created_at          DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime? @db.Timestamptz(6)
-} 
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  property_id String     @db.Uuid
+  imagesUrl   String?
+  created_at  DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime   @default(now()) @db.Timestamptz(6)
+  deleted_at  DateTime?  @db.Timestamptz(6)
+  imageName   String?
+  properties  Properties @relation(fields: [property_id], references: [id])
+}
 
 model PropertiesOwner {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  property_id         String    @db.Uuid
-  fullname            String? 
-  name                String? 
-  phone               String? 
-  watsapp             String? 
-  email               String?
-
-  properties          Properties? @relation(fields: [property_id], references: [id])
-
-  created_at          DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime? @db.Timestamptz(6)
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  property_id String     @db.Uuid
+  fullname    String?
+  name        String?
+  phone       String?
+  watsapp     String?
+  email       String?
+  created_at  DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime   @default(now()) @db.Timestamptz(6)
+  deleted_at  DateTime?  @db.Timestamptz(6)
+  properties  Properties @relation(fields: [property_id], references: [id])
 }
 
 model AdditionalDetails {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  property_id         String    @db.Uuid
-  parking_id          String    @db.Uuid
-  allow_path          Boolean   @default(false) 
-  construction_nearby Boolean   @default(false)
-  cleaning_requency   String? 
-  linen_chaneg        String? 
-
-  properties          Properties? @relation(fields: [property_id], references: [id])
-  Parking             Parking? @relation(fields: [parking_id], references: [id])
-
-  view                View[]
-
-  created_at          DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime? @db.Timestamptz(6)
+  id                  String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  property_id         String     @unique @db.Uuid
+  cleaning_requency   String?
+  linen_chaneg        String?
+  created_at          DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime   @default(now()) @db.Timestamptz(6)
+  deleted_at          DateTime?  @db.Timestamptz(6)
+  allow_path          Boolean    @default(false)
+  construction_nearby Boolean    @default(false)
+  properties          Properties @relation(fields: [property_id], references: [id])
+  Parking             Parking?
+  View                View?
 }
 
 model View {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  Additional_id       String    @db.Uuid
-  rice_field          Boolean   @default(false)
-  pool_view           Boolean   @default(false)
-  beach_view          Boolean   @default(false)
-  ocean_view          Boolean   @default(false)
-  sunset_view         Boolean   @default(false)
-  volcano_view        Boolean   @default(false)
-  montain_view        Boolean   @default(false)
-  jungle_view         Boolean   @default(false)
-  sunrise_view        Boolean   @default(false)
-  garden_view         Boolean   @default(false)
-
-  additionalDetails  AdditionalDetails? @relation(fields: [Additional_id], references: [id])
-
-  created_at          DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime? @db.Timestamptz(6)
-} 
+  id                    String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at            DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime          @default(now()) @db.Timestamptz(6)
+  deleted_at            DateTime?         @db.Timestamptz(6)
+  beach_view            Boolean           @default(false)
+  garden_view           Boolean           @default(false)
+  jungle_view           Boolean           @default(false)
+  montain_view          Boolean           @default(false)
+  ocean_view            Boolean           @default(false)
+  pool_view             Boolean           @default(false)
+  rice_field            Boolean           @default(false)
+  sunrise_view          Boolean           @default(false)
+  sunset_view           Boolean           @default(false)
+  volcano_view          Boolean           @default(false)
+  additional_details_id String            @unique @db.Uuid
+  AdditionalDetails     AdditionalDetails @relation(fields: [additional_details_id], references: [id])
+}
 
 model Parking {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  car_parking         Boolean   @default(false)
-  bike_parking        Boolean   @default(false)
-  both_car_and_bike   Boolean   @default(false)
-
-  additionalDetails   AdditionalDetails[]
-
-  created_at          DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime? @db.Timestamptz(6)
-} 
+  id                    String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at            DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime          @default(now()) @db.Timestamptz(6)
+  deleted_at            DateTime?         @db.Timestamptz(6)
+  bike_parking          Boolean           @default(false)
+  both_car_and_bike     Boolean           @default(false)
+  car_parking           Boolean           @default(false)
+  additional_details_id String            @unique @db.Uuid
+  AdditionalDetails     AdditionalDetails @relation(fields: [additional_details_id], references: [id])
+}
 
 model ServiceType {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  service_type        String?
-  service_id          String? 
-
-  service             Service[]
-
-  created_at          DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime? @db.Timestamptz(6)
-} 
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  service_type String?
+  service_id   String?
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at   DateTime? @db.Timestamptz(6)
+  service      Service[]
+}
 
 model Service {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  type_id             String?   @db.Uuid
-  service_name        String? 
-  service_type        String? 
-
-  serviceType         ServiceType? @relation(fields: [type_id], references: [id])
-  imagesService       ImagesService[]
-
-  created_at          DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime? @db.Timestamptz(6)
-} 
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type_id       String?         @db.Uuid
+  service_name  String?
+  service_type  String?
+  created_at    DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime        @default(now()) @db.Timestamptz(6)
+  deleted_at    DateTime?       @db.Timestamptz(6)
+  imagesService ImagesService[]
+  serviceType   ServiceType?    @relation(fields: [type_id], references: [id])
+}
 
 model ImagesService {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  service_id          String    @db.Uuid
-  imagesUrl           String? 
-
-  service             Service? @relation(fields: [service_id], references: [id])
-
-  created_at          DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime? @db.Timestamptz(6)
-} 
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  service_id String    @db.Uuid
+  imagesUrl  String?
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+  service    Service   @relation(fields: [service_id], references: [id])
+}
 
 model BlacklistedToken {
   id        Int      @id @default(autoincrement())
@@ -264,21 +222,24 @@ model BlacklistedToken {
 }
 
 model Genral_area {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  area                String?
-
-  created_at          DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime? @db.Timestamptz(6)
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  area       String?
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
 }
 
 model FavoriteProperties {
-  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id             String    @db.Uuid
-  property_id         String    @db.Uuid
-  status              Boolean   @default(false)
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String    @db.Uuid
+  property_id String    @db.Uuid
+  status      Boolean   @default(false)
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at  DateTime? @db.Timestamptz(6)
+}
 
-  created_at          DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime  @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime? @db.Timestamptz(6)
+enum Role {
+  admin
+  user
 }
