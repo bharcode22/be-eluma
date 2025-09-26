@@ -189,7 +189,12 @@ async create(body: CreatePropertyDto) {
         facilities: true,
         images: true,
         propertiesOwner: true,
-        additionalDetails: true
+        additionalDetails: {
+          include: {
+            parking: true,
+            view: true,
+          },
+        }
       }
     });
 
