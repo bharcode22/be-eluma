@@ -140,32 +140,91 @@ async create(body: CreatePropertyDto) {
   return createProperty;
 }
 
-  async findAll(): Promise<Prisma.PropertiesGetPayload<{
-    include: {
-      location: true,
-      availability: true,
-      facilities: true,
-      images: true,
-      propertiesOwner: true,
-      additionalDetails: true
-    }
-  }>[]> {
-    const getAllProperty = await this.prisma.properties.findMany({
-      where: {
-        isPublic: true, 
-        deleted_at: null
-      }, 
-      include: {
-        location: true,
-        availability: true,
-        facilities: true,
-        images: true,
-        propertiesOwner: true,
-        additionalDetails: true
-      }
-    });
+  // async findAll(): Promise<Prisma.PropertiesGetPayload<{
+  //   include: {
+  //     location: true,
+  //     availability: true,
+  //     facilities: true,
+  //     images: true,
+  //     propertiesOwner: true,
+  //     additionalDetails: true
+  //   }
+  // }>[]> {
+  //   const getAllProperty = await this.prisma.properties.findMany({
+  //     where: {
+  //       isPublic: true, 
+  //       deleted_at: null
+  //     }, 
+  //     include: {
+  //       location: true,
+  //       availability: true,
+  //       facilities: true,
+  //       images: true,
+  //       propertiesOwner: true,
+  //       additionalDetails: true
+  //     }
+  //   });
 
-    return getAllProperty;
+  //   return getAllProperty;
+  // }
+
+  async findAll(page: number = 1, limit: number = 6): Promise<{
+    data: Prisma.PropertiesGetPayload<{
+      include: {
+        location: true;
+        availability: true;
+        facilities: true;
+        images: true;
+        propertiesOwner: true;
+        additionalDetails: true;
+      };
+    }>[];
+    meta: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }> {
+    const skip = (page - 1) * limit;
+  
+    const [properties, total] = await Promise.all([
+      this.prisma.properties.findMany({
+        where: {
+          isPublic: true,
+          deleted_at: null
+        },
+        include: {
+          location: true,
+          availability: true,
+          facilities: true,
+          images: true,
+          propertiesOwner: true,
+          additionalDetails: true
+        },
+        skip,
+        take: limit,
+        orderBy: {
+          created_at: 'desc'
+        }
+      }),
+      this.prisma.properties.count({
+        where: {
+          isPublic: true,
+          deleted_at: null
+        }
+      })
+    ]);
+
+    return {
+      data: properties,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
   }
 
   async findOne(id: string): Promise<Prisma.PropertiesGetPayload<{

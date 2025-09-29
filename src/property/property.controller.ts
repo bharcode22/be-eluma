@@ -55,43 +55,61 @@ export class PropertyController {
   }
 
   @Get()
-  async findAll(@Res() res: Response) {
+  async findAll(
+    @Res() res: Response, 
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 6
+  ) {
     try {
-      const getAllProprties = await this.propertyService.findAll();
+      const pageNumber = Number(page) || 1;
+      const limitNumber = Number(limit) || 6;
 
-      if (getAllProprties.length === 0) {
+      const { data: properties, meta } = await this.propertyService.findAll(
+        pageNumber,
+        limitNumber
+      );
+
+      if (properties.length === 0) {
         return res.status(HttpStatus.NOT_FOUND).json({
-          message: "property not found, empty at database"
-        })
+          message: "No properties found"
+        });
       }
-
-      const formatData = getAllProprties.map(data => ({
-        id                  : data.id, 
-        property_code       : data.property_code,
-        user_id             : data.user_id, 
-        type_id             : data.type_id, 
-        property_tittle     : data.property_tittle, 
-        description         : data.description,  
-        number_of_bedrooms  : data.number_of_bathrooms, 
-        number_of_bathrooms : data.number_of_bathrooms, 
-        maximum_guest       : data.maximum_guest, 
-        minimum_stay        : data.minimum_stay, 
-        price               : data.price,
-        monthly_price       : data.monthly_price, 
-        yearly_price        : data.yearly_price, 
-
-        location            : data.location,
-        availability        : data.availability,
-        facilities          : data.facilities,
-        images              : data.images,
-        propertiesOwner     : data.propertiesOwner,
-        additionalDetails   : data.additionalDetails,
+  
+      const formatData = properties.map(data => ({
+        id: data.id, 
+        property_code: data.property_code,
+        user_id: data.user_id, 
+        type_id: data.type_id, 
+        property_tittle: data.property_tittle, 
+        description: data.description,  
+        number_of_bedrooms: data.number_of_bedrooms, 
+        number_of_bathrooms: data.number_of_bathrooms, 
+        maximum_guest: data.maximum_guest, 
+        minimum_stay: data.minimum_stay, 
+        price: data.price,
+        monthly_price: data.monthly_price, 
+        yearly_price: data.yearly_price, 
+        location: data.location,
+        availability: data.availability,
+        facilities: data.facilities,
+        images: data.images,
+        propertiesOwner: data.propertiesOwner,
+        additionalDetails: data.additionalDetails,
       }));
-
+  
       return res.status(HttpStatus.OK).json({
-        message: 'Success to get all property data',
-        totalData: formatData.length, 
-        data: formatData,
+        message: 'Successfully retrieved property data',
+        data: {
+          properties: formatData,
+          pagination: {
+            currentPage: meta.page,
+            itemsPerPage: meta.limit,
+            totalItems: meta.total,
+            totalPages: meta.totalPages,
+            hasNextPage: meta.page < meta.totalPages,
+            hasPreviousPage: meta.page > 1
+          }
+        }
       });
     } catch (error: any) {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
@@ -99,7 +117,7 @@ export class PropertyController {
         error: error.message,
       });
     }
-  } 
+  }
 
   @Get('/:id')
   async findOne(@Res() res: Response, @Param('id') id: string) {
