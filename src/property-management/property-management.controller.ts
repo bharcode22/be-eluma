@@ -15,25 +15,27 @@ export class PropertyManagementController {
     return this.propertyManagementService.create(createPropertyManagementDto);
   }
 
-  @Roles('admin')
-  @UseGuards(AuthGuard)
-  @Get()
-  async findAll(@Res() res: Response, @Req() req: Request) {
-    try {
-      const data = await this.propertyManagementService.getAllProperty();
+@Roles('admin')
+@UseGuards(AuthGuard)
+@Get()
+async findAll(@Res() res: Response, @Req() req: Request) {
+  try {
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 8;
 
-      return res.status(HttpStatus.OK).json({
-        message: "success to get all property", 
-        data: data
-      })
+    const result = await this.propertyManagementService.getAllProperty(page, limit);
 
-    } catch (error: any) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message: 'Failed to create property',
-        error: error.message,
-      });
-    }
+    return res.status(HttpStatus.OK).json({
+      message: "success to get all property",
+      ...result, 
+    });
+  } catch (error: any) {
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      message: 'Failed to get property list',
+      error: error.message,
+    });
   }
+}
 
   @Get(':id')
   findOne(@Param('id') id: string) {

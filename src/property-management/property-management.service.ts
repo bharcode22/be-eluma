@@ -11,28 +11,46 @@ export class PropertyManagementService {
     return 'This action adds a new propertyManagement';
   }
 
-  async getAllProperty() {
-    const data = await this.prisma.properties.findMany({
-      select: {
-        id: true, 
-        user_id: true, 
-        property_tittle: true, 
-        number_of_bedrooms: true, 
-        number_of_bathrooms: true, 
-        maximum_guest: true, 
-        minimum_stay: true, 
-        price: true, 
-        monthly_price: true, 
-        yearly_price: true, 
-        isPublic: true, 
-        created_at: true, 
-        updated_at: true, 
-        deleted_at: true, 
-      }
-    })
+async getAllProperty(page: number, limit: number) {
+  const skip = (page - 1) * limit;
 
-    return data;
-  }
+  const properties = await this.prisma.properties.findMany({
+    skip,
+    take: limit,
+    orderBy: {
+      created_at: 'desc',
+    },
+    select: {
+      id: true,
+      user_id: true,
+      property_code: true,
+      property_tittle: true,
+      number_of_bedrooms: true,
+      number_of_bathrooms: true,
+      maximum_guest: true,
+      minimum_stay: true,
+      price: true,
+      monthly_price: true,
+      yearly_price: true,
+      isPublic: true,
+      created_at: true,
+      updated_at: true,
+      deleted_at: true,
+    },
+  });
+
+  const totalItems = await this.prisma.properties.count();
+
+  return {
+    meta: {
+      totalItems,
+      currentPage: page,
+      totalPages: Math.ceil(totalItems / limit),
+      limit,
+    },
+    data: properties,
+  };
+}
 
   findOne(id: number) {
     return `This action returns a #${id} propertyManagement`;
