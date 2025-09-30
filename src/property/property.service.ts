@@ -80,14 +80,6 @@ async create(body: CreatePropertyDto) {
           }
         : undefined,
 
-      // additionalDetails: body.additionalDetails
-      //   ? {
-      //       create: {
-      //         ...body.additionalDetails,
-      //       },
-      //     }
-      //   : undefined,
-
       additionalDetails: body.additionalDetails
       ? {
           create: {
@@ -139,34 +131,6 @@ async create(body: CreatePropertyDto) {
 
   return createProperty;
 }
-
-  // async findAll(): Promise<Prisma.PropertiesGetPayload<{
-  //   include: {
-  //     location: true,
-  //     availability: true,
-  //     facilities: true,
-  //     images: true,
-  //     propertiesOwner: true,
-  //     additionalDetails: true
-  //   }
-  // }>[]> {
-  //   const getAllProperty = await this.prisma.properties.findMany({
-  //     where: {
-  //       isPublic: true, 
-  //       deleted_at: null
-  //     }, 
-  //     include: {
-  //       location: true,
-  //       availability: true,
-  //       facilities: true,
-  //       images: true,
-  //       propertiesOwner: true,
-  //       additionalDetails: true
-  //     }
-  //   });
-
-  //   return getAllProperty;
-  // }
 
   async findAll(page: number = 1, limit: number = 6): Promise<{
     data: Prisma.PropertiesGetPayload<{
