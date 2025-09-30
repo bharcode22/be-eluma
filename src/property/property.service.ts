@@ -10,127 +10,127 @@ import * as path from 'path';
 export class PropertyService {
   constructor(private prisma: PrismaService) {}
 
-async create(body: CreatePropertyDto) {
-    const letters = Math.random().toString(36).substring(2, 5).toUpperCase();
-    const numbers = Math.floor(1000 + Math.random() * 9000);
-    const code = `${letters}${numbers}`;
+  async create(body: CreatePropertyDto) {
+      const letters = Math.random().toString(36).substring(2, 5).toUpperCase();
+      const numbers = Math.floor(1000 + Math.random() * 9000);
+      const code = `${letters}${numbers}`;
 
-  const createProperty = await this.prisma.properties.create({
-    data: {
-      id: body.id,
-      user_id: body.user_id,
-      type_id: body.type_id,
-      property_tittle: body.property_tittle,
-      description: body.description,
-      number_of_bedrooms: body.number_of_bedrooms,
-      number_of_bathrooms: body.number_of_bathrooms,
-      maximum_guest: body.maximum_guest,
-      minimum_stay: body.minimum_stay,
-      price: body.price,
-      monthly_price: body.monthly_price,
-      yearly_price: body.yearly_price,
-      property_code: code,
+    const createProperty = await this.prisma.properties.create({
+      data: {
+        id: body.id,
+        user_id: body.user_id,
+        type_id: body.type_id,
+        property_tittle: body.property_tittle,
+        description: body.description,
+        number_of_bedrooms: body.number_of_bedrooms,
+        number_of_bathrooms: body.number_of_bathrooms,
+        maximum_guest: body.maximum_guest,
+        minimum_stay: body.minimum_stay,
+        price: body.price,
+        monthly_price: body.monthly_price,
+        yearly_price: body.yearly_price,
+        property_code: code,
 
-      location: body.location
+        location: body.location
+          ? {
+              create: {
+                general_area: body.location.general_area,
+                map_url: body.location.map_url,
+                longitude: body.location.longitude,
+                latitude: body.location.latitude,
+              },
+            }
+          : undefined,
+
+        availability: body.availability
+          ? {
+              create: {
+                available_from: body.availability.available_from,
+                available_to: body.availability.available_to,
+              },
+            }
+          : undefined,
+
+        facilities: body.facilities
         ? {
             create: {
-              general_area: body.location.general_area,
-              map_url: body.location.map_url,
-              longitude: body.location.longitude,
-              latitude: body.location.latitude,
+              ...Object.fromEntries(
+                Object.entries(body.facilities).map(([key, value]) => [key, value === true])
+              ),
             },
           }
         : undefined,
 
-      availability: body.availability
+        images: body.images?.length
+          ? {
+              create: body.images.map((img) => ({
+                imagesUrl: img.imagesUrl,
+                imageName: img.imageName,
+              })),
+            }
+          : undefined,
+
+        propertiesOwner: body.propertiesOwner
+          ? {
+              create: {
+                ...body.propertiesOwner,
+                phone: body.propertiesOwner.phone !== undefined ? body.propertiesOwner.phone.toString() : undefined,
+                watsapp: body.propertiesOwner.watsapp !== undefined ? body.propertiesOwner.watsapp.toString() : undefined,
+              },
+            }
+          : undefined,
+
+        additionalDetails: body.additionalDetails
         ? {
             create: {
-              available_from: body.availability.available_from,
-              available_to: body.availability.available_to,
+              cleaning_requency: body.additionalDetails.cleaning_requency,
+              linen_chaneg: body.additionalDetails.linen_chaneg,
+              allow_path: body.additionalDetails.allow_path,
+              construction_nearby: body.additionalDetails.construction_nearby,
+      
+              parking: body.additionalDetails.parking
+                ? {
+                    create: {
+                      car_parking: body.additionalDetails.parking.car_parking,
+                      bike_parking: body.additionalDetails.parking.bike_parking,
+                      both_car_and_bike: body.additionalDetails.parking.both_car_and_bike,
+                    },
+                  }
+                : undefined,
+      
+              view: body.additionalDetails.view
+                ? {
+                    create: {
+                      beach_view: body.additionalDetails.view.beach_view,
+                      garden_view: body.additionalDetails.view.garden_view,
+                      jungle_view: body.additionalDetails.view.jungle_view,
+                      montain_view: body.additionalDetails.view.montain_view,
+                      ocean_view: body.additionalDetails.view.ocean_view,
+                      pool_view: body.additionalDetails.view.pool_view,
+                      rice_field: body.additionalDetails.view.rice_field,
+                      sunrise_view: body.additionalDetails.view.sunrise_view,
+                      sunset_view: body.additionalDetails.view.sunset_view,
+                      volcano_view: body.additionalDetails.view.volcano_view,
+                    },
+                  }
+                : undefined,
             },
           }
         : undefined,
 
-      facilities: body.facilities
-      ? {
-          create: {
-            ...Object.fromEntries(
-              Object.entries(body.facilities).map(([key, value]) => [key, value === true])
-            ),
-          },
-        }
-      : undefined,
+      },
+      include: {
+        location: true,
+        availability: true,
+        facilities: true,
+        images: true,
+        propertiesOwner: true,
+        additionalDetails: true,
+      },
+    });
 
-      images: body.images?.length
-        ? {
-            create: body.images.map((img) => ({
-              imagesUrl: img.imagesUrl,
-              imageName: img.imageName,
-            })),
-          }
-        : undefined,
-
-      propertiesOwner: body.propertiesOwner
-        ? {
-            create: {
-              ...body.propertiesOwner,
-              phone: body.propertiesOwner.phone !== undefined ? body.propertiesOwner.phone.toString() : undefined,
-              watsapp: body.propertiesOwner.watsapp !== undefined ? body.propertiesOwner.watsapp.toString() : undefined,
-            },
-          }
-        : undefined,
-
-      additionalDetails: body.additionalDetails
-      ? {
-          create: {
-            cleaning_requency: body.additionalDetails.cleaning_requency,
-            linen_chaneg: body.additionalDetails.linen_chaneg,
-            allow_path: body.additionalDetails.allow_path,
-            construction_nearby: body.additionalDetails.construction_nearby,
-    
-            parking: body.additionalDetails.parking
-              ? {
-                  create: {
-                    car_parking: body.additionalDetails.parking.car_parking,
-                    bike_parking: body.additionalDetails.parking.bike_parking,
-                    both_car_and_bike: body.additionalDetails.parking.both_car_and_bike,
-                  },
-                }
-              : undefined,
-    
-            view: body.additionalDetails.view
-              ? {
-                  create: {
-                    beach_view: body.additionalDetails.view.beach_view,
-                    garden_view: body.additionalDetails.view.garden_view,
-                    jungle_view: body.additionalDetails.view.jungle_view,
-                    montain_view: body.additionalDetails.view.montain_view,
-                    ocean_view: body.additionalDetails.view.ocean_view,
-                    pool_view: body.additionalDetails.view.pool_view,
-                    rice_field: body.additionalDetails.view.rice_field,
-                    sunrise_view: body.additionalDetails.view.sunrise_view,
-                    sunset_view: body.additionalDetails.view.sunset_view,
-                    volcano_view: body.additionalDetails.view.volcano_view,
-                  },
-                }
-              : undefined,
-          },
-        }
-      : undefined,
-
-    },
-    include: {
-      location: true,
-      availability: true,
-      facilities: true,
-      images: true,
-      propertiesOwner: true,
-      additionalDetails: true,
-    },
-  });
-
-  return createProperty;
-}
+    return createProperty;
+  }
 
   async findAll(page: number = 1, limit: number = 6): Promise<{
     data: Prisma.PropertiesGetPayload<{
