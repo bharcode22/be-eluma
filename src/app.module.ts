@@ -11,6 +11,9 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { GeneralAreaModule } from './general-area/general-area.module';
 import { FavoritePropertiesModule } from './favorite-properties/favorite-properties.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { UsersManagementModule } from './users-management/users-management.module';
+import { PropertyManagementModule } from './property-management/property-management.module';
 
 @Module({
   imports: [
@@ -28,6 +31,9 @@ import { FavoritePropertiesModule } from './favorite-properties/favorite-propert
     ImagesModule,
     GeneralAreaModule,
     FavoritePropertiesModule,
+    DashboardModule,
+    UsersManagementModule,
+    PropertyManagementModule,
   ],
   controllers: [
     UsersController 
