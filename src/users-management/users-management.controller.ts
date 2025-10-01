@@ -10,25 +10,28 @@ import { UsersManagementService } from './users-management.service';
 export class UsersManagementController {
   constructor(private readonly usersManagementService: UsersManagementService) {}
 
-  @Roles('admin')
-  @UseGuards(AuthGuard)
-  @Get()
-  async findAll(@Res() res: Response, @Req() req: Request) {
-    try {
-      const data = await this.usersManagementService.getAllUsers();
+@Roles('admin')
+@UseGuards(AuthGuard)
+@Get()
+async findAll(@Res() res: Response, @Req() req: Request) {
+  try {
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 8;
+    const search = req.query.search as string | undefined;
 
-      return res.status(HttpStatus.OK).json({
-        message: "success to get all users", 
-        data: data
-      })
+    const result = await this.usersManagementService.getAllUsers(page, limit, search);
 
-    } catch (error: any) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message: 'Failed to create property',
-        error: error.message,
-      });
-    }
+    return res.status(HttpStatus.OK).json({
+      message: 'Success to get all users',
+      ...result,
+    });
+  } catch (error: any) {
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      message: 'Failed to get users',
+      error: error.message,
+    });
   }
+}
 
   @Get(':id')
   findOne(@Param('id') id: string) {

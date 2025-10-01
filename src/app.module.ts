@@ -12,8 +12,9 @@ import { join } from 'path';
 import { GeneralAreaModule } from './general-area/general-area.module';
 import { FavoritePropertiesModule } from './favorite-properties/favorite-properties.module';
 import { DashboardModule } from './dashboard/dashboard.module';
-import { UsersManagementModule } from './users-management/users-management.module';
 import { PropertyManagementModule } from './property-management/property-management.module';
+import { UsersManagementModule } from './users-management/users-management.module';
+import { PropertyOwnerModule } from './property-owner/property-owner.module';
 
 @Module({
   imports: [
@@ -32,8 +33,9 @@ import { PropertyManagementModule } from './property-management/property-managem
     GeneralAreaModule,
     FavoritePropertiesModule,
     DashboardModule,
-    UsersManagementModule,
     PropertyManagementModule,
+    UsersManagementModule,
+    PropertyOwnerModule,
   ],
   controllers: [
     UsersController 
