@@ -11,7 +11,7 @@ export class PropertyController {
   [x: string]: any;
   constructor(private readonly propertyService: PropertyService) {}
 
-  @Roles('user')
+  @Roles('user', 'admin')
   @UseGuards(AuthGuard)
   @Post()
   @UseInterceptors(PropertyImagesInterceptor())
@@ -463,7 +463,7 @@ export class PropertyController {
     }
   }
 
-  @Roles('user')
+  @Roles('user', 'admin')
   @UseGuards(AuthGuard)
   @Put('/update/property/:id/images')
   @UseInterceptors(PropertyImagesInterceptor())
@@ -521,7 +521,7 @@ export class PropertyController {
     }
   }
 
-  @Roles('user')
+  @Roles('user', 'admin')
   @UseGuards(AuthGuard)
   @Get('/:id/images')
   async getImagesController(@Param('id') id: string, @Res() res: Response) {
