@@ -22,8 +22,9 @@ async findAll(@Res() res: Response, @Req() req: Request) {
   try {
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = parseInt(req.query.limit as string, 10) || 8;
+    const search = req.query.search as string | undefined;
 
-    const result = await this.propertyManagementService.getAllProperty(page, limit);
+    const result = await this.propertyManagementService.getAllProperty(page, limit, search);
 
     return res.status(HttpStatus.OK).json({
       message: "success to get all property",

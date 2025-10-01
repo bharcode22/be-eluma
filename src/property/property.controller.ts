@@ -305,7 +305,7 @@ export class PropertyController {
       })
   }
 
-  @Roles('user')
+  @Roles('user', 'admin')
   @UseGuards(AuthGuard)
   @Patch(':id')
   @UseInterceptors(PropertyImagesInterceptor())
@@ -363,7 +363,7 @@ export class PropertyController {
     }
   }  
 
-  @Roles('user')
+  @Roles('user', 'admin')
   @UseGuards(AuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string, @Res() res: Response) {
@@ -438,7 +438,7 @@ export class PropertyController {
     }
   }
 
-  @Roles('user')
+  @Roles('user', 'admin')
   @UseGuards(AuthGuard)
   @Delete('/hard/delete/:id')
   async hardDeleteProperty(@Param('id') id: string, @Res() res: Response) {

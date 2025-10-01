@@ -8,7 +8,11 @@ export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
   async findAllStatsData() {
-    const totalProperty = await this.prisma.properties.count()
+    const totalProperty = await this.prisma.properties.count({
+      where: {
+        deleted_at: null
+      }
+    })
     const totalUsers = await this.prisma.user.count()
     const totalPropertyOwner = await this.prisma.propertiesOwner.count()
     const totalService = await this.prisma.service.count()
@@ -38,7 +42,10 @@ export class DashboardService {
         isPublic: true,
         created_at: true,
       }, 
-      take: 5
+      take: 5, 
+      where: {
+        deleted_at: null
+      }
     })
 
     return latestPropertyData
