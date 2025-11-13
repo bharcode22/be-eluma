@@ -452,10 +452,10 @@ export class PropertyService {
             linen_chaneg: body.additionalDetails.linen_chaneg,
             allow_path: body.additionalDetails.allow_path,
             construction_nearby: body.additionalDetails.construction_nearby,
-            view: body.additionalDetails.view
+            View: body.additionalDetails.view
               ? { create: body.additionalDetails.view }
               : undefined,
-            parking: body.additionalDetails.parking
+            Parking: body.additionalDetails.parking
               ? { create: body.additionalDetails.parking }
               : undefined,
           },
