@@ -88,7 +88,7 @@ export class PropertyService {
               allow_path: body.additionalDetails.allow_path,
               construction_nearby: body.additionalDetails.construction_nearby,
       
-              parking: body.additionalDetails.parking
+              Parking: body.additionalDetails.parking
                 ? {
                     create: {
                       car_parking: body.additionalDetails.parking.car_parking,
@@ -98,7 +98,7 @@ export class PropertyService {
                   }
                 : undefined,
       
-              view: body.additionalDetails.view
+              View: body.additionalDetails.view
                 ? {
                     create: {
                       beach_view: body.additionalDetails.view.beach_view,
@@ -198,7 +198,12 @@ export class PropertyService {
       facilities: true,
       images: true,
       propertiesOwner: true,
-      additionalDetails: true
+      additionalDetails: {
+        include: {
+          Parking: true,
+          View: true
+        }
+      }
     }
   }>[]> {
     const getPropertyById = await this.prisma.properties.findUnique({
@@ -214,8 +219,8 @@ export class PropertyService {
         propertiesOwner: true,
         additionalDetails: {
           include: {
-            parking: true,
-            view: true,
+            Parking: true,
+            View: true,
           },
         }
       }
@@ -231,7 +236,12 @@ export class PropertyService {
       facilities: true,
       images: true,
       propertiesOwner: true,
-      additionalDetails: true
+      additionalDetails: {
+        include: {
+          Parking: true,
+          View: true
+        }
+      }
     }
   }>[]> {
     const getAllProperty = await this.prisma.properties.findMany({
@@ -248,8 +258,8 @@ export class PropertyService {
         propertiesOwner: true,
         additionalDetails: {
           include: {
-            parking: true,
-            view: true,
+            Parking: true,
+            View: true,
           },
         },
       }
