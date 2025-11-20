@@ -239,6 +239,22 @@ model FavoriteProperties {
   deleted_at  DateTime? @db.Timestamptz(6)
 }
 
+model Contact {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  number      String?
+  status      ContactStatus @default(active)
+
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at  DateTime? @db.Timestamptz(6)
+}
+
+enum ContactStatus {
+  active
+  inactive
+}
+
 enum Role {
   admin
   user

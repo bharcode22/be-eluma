@@ -15,6 +15,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { PropertyManagementModule } from './property-management/property-management.module';
 import { UsersManagementModule } from './users-management/users-management.module';
 import { PropertyOwnerModule } from './property-owner/property-owner.module';
+import { ContactModule } from './contact/contact.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { PropertyOwnerModule } from './property-owner/property-owner.module';
     PropertyManagementModule,
     UsersManagementModule,
     PropertyOwnerModule,
+    ContactModule,
   ],
   controllers: [
     UsersController 
