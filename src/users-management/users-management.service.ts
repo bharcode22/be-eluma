@@ -36,6 +36,17 @@ export class UsersManagementService {
           email: true,
           name: true,
           role: true,
+          _count: {
+            select: {
+              properties: {
+                where: {
+                  isPublic: true, 
+                  deleted_at: null
+                }
+              }
+            }
+          }, 
+          status: true, 
           created_at: true,
         },
         skip,
@@ -63,12 +74,8 @@ export class UsersManagementService {
 
     const formatData = ({
       id              : getUserByIdData.id, 
-      username        : getUserByIdData.username, 
-      email           : getUserByIdData.email, 
-      name            : getUserByIdData.name, 
       role            : getUserByIdData.role, 
-      avatar          : getUserByIdData.avatar, 
-      provider        : getUserByIdData.provider
+      status          : getUserByIdData.status        
     })
 
     return formatData;
@@ -77,7 +84,8 @@ export class UsersManagementService {
   async findDetailProperty(id: string) {
     const propertyByUsers = await this.prisma.properties.findMany({
       where: {
-        user_id: id
+        user_id: id, 
+        deleted_at: null
       }, 
       include: {
         propertyType: true
@@ -129,14 +137,8 @@ export class UsersManagementService {
       where: { id },
       data: dataToUpdate,
       select: {
-        id: true,
-        username: true,
-        email: true,
-        name: true,
-        role: true,
-        avatar: true,
-        provider: true,
-        updated_at: true,
+        status: true, 
+        role: true
       },
     });
 
@@ -144,10 +146,53 @@ export class UsersManagementService {
   }
 
   async remove(id: string) {
-    const removed = await this.prisma.user.update({
-      where: { id },
-      data: { deleted_at: new Date() },
+    const properties = await this.prisma.properties.findMany({
+      where: {
+        user_id: id,
+        deleted_at: null
+      },
+      select: {
+        id: true,
+      },
     });
+
+    const propertyIds = properties.map(p => p.id);
+
+    await this.prisma.$transaction(async (tx) => {
+      if (propertyIds.length > 0) {
+        await tx.images.deleteMany({
+          where: { property_id: { in: propertyIds } },
+        });
+
+        await tx.location.deleteMany({
+          where: { property_id: { in: propertyIds } },
+        });
+
+        await tx.availability.deleteMany({
+          where: { property_id: { in: propertyIds } },
+        });
+
+        await tx.facilities.deleteMany({
+          where: { property_id: { in: propertyIds } },
+        });
+
+        await tx.propertiesOwner.deleteMany({
+          where: { property_id: { in: propertyIds } },
+        });
+
+        await tx.additionalDetails.deleteMany({
+          where: { property_id: { in: propertyIds } },
+        });
+
+        await tx.properties.deleteMany({
+          where: { id: { in: propertyIds } },
+        });
+      }
+    });
+
+    const removed = await this.prisma.user.delete({ 
+      where: { id } 
+    }); 
 
     return removed;
   }

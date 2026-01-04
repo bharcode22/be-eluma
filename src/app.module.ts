@@ -16,6 +16,7 @@ import { PropertyManagementModule } from './property-management/property-managem
 import { UsersManagementModule } from './users-management/users-management.module';
 import { PropertyOwnerModule } from './property-owner/property-owner.module';
 import { ContactModule } from './contact/contact.module';
+import { ServiceModule } from './service/service.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { ContactModule } from './contact/contact.module';
     UsersManagementModule,
     PropertyOwnerModule,
     ContactModule,
+    ServiceModule,
   ],
   controllers: [
     UsersController 

@@ -51,8 +51,6 @@ export class ContactController {
     }
   }
 
-  @Roles('admin')
-  @UseGuards(AuthGuard)
   @Get()
   async getContact(@Res() res: Response) {
     try {

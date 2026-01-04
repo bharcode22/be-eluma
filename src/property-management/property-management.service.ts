@@ -49,6 +49,14 @@ async getAllProperty(page: number, limit: number, search?: string) {
         created_at: true,
         updated_at: true,
         deleted_at: true,
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            name: true,
+          },
+        }
       },
     }),
     this.prisma.properties.count({ where })

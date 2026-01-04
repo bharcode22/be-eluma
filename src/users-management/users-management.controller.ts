@@ -5,34 +5,35 @@ import { AuthGuard } from '../auth/guard/auth.guard';
 import { CreateUsersManagementDto } from './dto/create-users-management.dto';
 import { UpdateUsersManagementDto } from './dto/update-users-management.dto';
 import { UsersManagementService } from './users-management.service';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
 
 @Controller('users-management')
 export class UsersManagementController {
-  constructor(private readonly usersManagementService: UsersManagementService) {}
+  constructor(
+    private readonly usersManagementService: UsersManagementService
+  ) {}
 
-@Roles('admin')
-@UseGuards(AuthGuard)
-@Get()
-async findAll(@Res() res: Response, @Req() req: Request) {
-  try {
-    const page = parseInt(req.query.page as string, 10) || 1;
-    const limit = parseInt(req.query.limit as string, 10) || 8;
-    const search = req.query.search as string | undefined;
+  @Roles('admin')
+  @UseGuards(AuthGuard)
+  @Get()
+  async findAll(@Res() res: Response, @Req() req: Request) {
+    try {
+      const page = parseInt(req.query.page as string, 10) || 1;
+      const limit = parseInt(req.query.limit as string, 10) || 8;
+      const search = req.query.search as string | undefined;
 
-    const result = await this.usersManagementService.getAllUsers(page, limit, search);
+      const result = await this.usersManagementService.getAllUsers(page, limit, search);
 
-    return res.status(HttpStatus.OK).json({
-      message: 'Success to get all users',
-      ...result,
-    });
-  } catch (error: any) {
-    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-      message: 'Failed to get users',
-      error: error.message,
-    });
+      return res.status(HttpStatus.OK).json({
+        message: 'Success to get all users',
+        ...result,
+      });
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to get users',
+        error: error.message,
+      });
+    }
   }
-}
 
   @Roles('admin')
   @UseGuards(AuthGuard)
@@ -54,10 +55,10 @@ async findAll(@Res() res: Response, @Req() req: Request) {
       })
 
     } catch (error: any) {
-    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-      message: 'Failed to get detail property users',
-      error: error.message,
-    });
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to get detail property users',
+        error: error.message,
+      });
     }
   }
 

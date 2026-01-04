@@ -7,6 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  admin
+  user
+}
+
+enum StatusUser {
+  active
+  inactive
+}
+
 model User {
   id         String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   username   String?
@@ -14,6 +24,7 @@ model User {
   name       String?
   password   String?
   role       Role         @default(user)
+  status     StatusUser   @default(active)
   created_at DateTime     @default(now()) @db.Timestamptz(6)
   updated_at DateTime     @default(now()) @db.Timestamptz(6)
   deleted_at DateTime?    @db.Timestamptz(6)
@@ -198,11 +209,14 @@ model Service {
   type_id       String?         @db.Uuid
   service_name  String?
   service_type  String?
+
+  imagesService ImagesService[]
+
+  serviceType   ServiceType?    @relation(fields: [type_id], references: [id])
+
   created_at    DateTime        @default(now()) @db.Timestamptz(6)
   updated_at    DateTime        @default(now()) @db.Timestamptz(6)
   deleted_at    DateTime?       @db.Timestamptz(6)
-  imagesService ImagesService[]
-  serviceType   ServiceType?    @relation(fields: [type_id], references: [id])
 }
 
 model ImagesService {
@@ -253,9 +267,4 @@ model Contact {
 enum ContactStatus {
   active
   inactive
-}
-
-enum Role {
-  admin
-  user
 }
