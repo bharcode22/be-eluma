@@ -17,6 +17,7 @@ import { UsersManagementModule } from './users-management/users-management.modul
 import { PropertyOwnerModule } from './property-owner/property-owner.module';
 import { ContactModule } from './contact/contact.module';
 import { ServiceModule } from './service/service.module';
+import { ServiceUserModule } from './service-user/service-user.module';
 
 @Module({
   imports: [
@@ -24,6 +25,12 @@ import { ServiceModule } from './service/service.module';
       rootPath: join(__dirname, '..', 'propertyImages'),
       serveRoot: '/propertyImages',
     }),
+
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'serviceImages'),
+      serveRoot: '/serviceImages',
+    }),
+
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -40,6 +47,7 @@ import { ServiceModule } from './service/service.module';
     PropertyOwnerModule,
     ContactModule,
     ServiceModule,
+    ServiceUserModule,
   ],
   controllers: [
     UsersController 

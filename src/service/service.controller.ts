@@ -23,7 +23,7 @@ export class ServiceController {
     FilesInterceptor('images', 10, {
       storage: diskStorage({
         destination: (req: any, file: any, cb: any) => {
-          const uploadPath = path.join(process.cwd(), 'servicesimages');
+          const uploadPath = path.join(process.cwd(), 'serviceImages');
           fs.mkdirSync(uploadPath, { recursive: true });
           cb(null, uploadPath);
         },

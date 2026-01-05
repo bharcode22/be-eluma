@@ -204,11 +204,18 @@ model ServiceType {
   service      Service[]
 }
 
+enum serviceStatus {
+  active
+  inactive
+}
+
 model Service {
   id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type_id       String?         @db.Uuid
   service_name  String?
   service_type  String?
+  description   String? 
+  status        serviceStatus  @default(active)
 
   imagesService ImagesService[]
 

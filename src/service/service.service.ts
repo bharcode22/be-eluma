@@ -16,10 +16,11 @@ export class ServiceService {
 
     return this.prisma.service.create({
       data: {
-        type_id: createServiceDto.type_id,
-        service_name: createServiceDto.service_name,
-        service_type: createServiceDto.service_type,
-        imagesService: {
+        type_id       : createServiceDto.type_id,
+        service_name  : createServiceDto.service_name,
+        service_type  : createServiceDto.service_type,
+        description   : createServiceDto.description, 
+        imagesService : {
           create: imageData,
         },
       },
