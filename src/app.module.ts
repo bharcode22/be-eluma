@@ -18,6 +18,7 @@ import { PropertyOwnerModule } from './property-owner/property-owner.module';
 import { ContactModule } from './contact/contact.module';
 import { ServiceModule } from './service/service.module';
 import { ServiceUserModule } from './service-user/service-user.module';
+import { SayHalloModule } from './say-hallo/say-hallo.module';
 
 @Module({
   imports: [
@@ -48,12 +49,13 @@ import { ServiceUserModule } from './service-user/service-user.module';
     ContactModule,
     ServiceModule,
     ServiceUserModule,
+    SayHalloModule,
   ],
   controllers: [
-    UsersController 
+    UsersController
   ],
   providers: [
     UsersService
   ],
 })
-export class AppModule {}
+export class AppModule { }
