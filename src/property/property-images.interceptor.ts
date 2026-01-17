@@ -8,17 +8,26 @@ export function PropertyImagesInterceptor() {
         storage: diskStorage({
             destination: (req: any, file: any, cb: any) => {
 
-                const isVercel = !!process.env.VERCEL;
+                const preferredUploadPath = 'propertyImages';
+                const fallbackUploadPath = '/tmp/propertyImages';
 
-                const uploadPath = isVercel
-                    ? '/tmp/propertyImages'
-                    : 'propertyImages';
+                const ensureDir = (dir: string) => {
+                    if (!existsSync(dir)) {
+                        mkdirSync(dir, { recursive: true });
+                    }
+                };
 
-                if (!existsSync(uploadPath)) {
-                    mkdirSync(uploadPath, { recursive: true });
+                try {
+                    ensureDir(preferredUploadPath);
+                    cb(null, preferredUploadPath);
+                } catch (err: any) {
+                    if (err?.code === 'EROFS' || err?.code === 'EACCES') {
+                        ensureDir(fallbackUploadPath);
+                        cb(null, fallbackUploadPath);
+                        return;
+                    }
+                    throw err;
                 }
-
-                cb(null, uploadPath);
             },
 
             filename: (req, file, cb) => {
