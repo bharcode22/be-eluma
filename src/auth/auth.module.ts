@@ -19,7 +19,7 @@ dotenv.config();
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret: config.get<string>(process.env.JWT_SECRET),
+        secret: config.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: '1d' },
       }),
     }),
@@ -31,7 +31,7 @@ dotenv.config();
     {
       provide: OAuth2Client,
       useFactory: (config: ConfigService) => {
-        return new OAuth2Client(config.get<string>(process.env.GOOGLE_CLIENT_ID));
+        return new OAuth2Client(config.get<string>('GOOGLE_CLIENT_ID'));
       },
       inject: [ConfigService],
     }

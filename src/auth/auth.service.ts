@@ -110,10 +110,19 @@ export class AuthService {
     }
 
     async verifyGoogleLogin(googleToken: string): Promise<{ access_token: string; user: any }> {
+        if (!googleToken) {
+            throw new UnauthorizedException('Google token is missing');
+        }
+
+        const googleClientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+        if (!googleClientId) {
+            throw new UnauthorizedException('GOOGLE_CLIENT_ID is missing');
+        }
+
         // 1. Verifikasi token Google
         const ticket = await this.client.verifyIdToken({
             idToken: googleToken,
-            audience: this.configService.get<string>(process.env.GOOGLE_CLIENT_ID),
+            audience: googleClientId,
         });
 
         const payload = ticket.getPayload();
