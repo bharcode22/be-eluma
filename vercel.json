@@ -1,0 +1,23 @@
+{
+    "version": 2,
+    "name": "eluma-backend",
+    "builds": [
+        {
+            "src": "api/index.ts",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/propertyImages/(.*)",
+            "dest": "/propertyImages/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/api/index.ts"
+        }
+    ],
+    "env": {
+        "NODE_ENV": "production"
+    }
+}
