@@ -78,7 +78,7 @@ export class FavoritePropertiesController {
         messgae: "success get saved property", 
         user_id,
         totalFavorites: propertyIds.length,
-        data: mergedData,
+        data: propertiData,
       });
 
     } catch (error: any) {

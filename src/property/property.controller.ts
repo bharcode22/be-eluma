@@ -176,8 +176,9 @@ export class PropertyController {
       const getAllProprties = await this.propertyService.findMyProperty(user_id);
 
       if (getAllProprties.length === 0) {
-        return res.status(HttpStatus.NOT_FOUND).json({
-          message: "property not found, empty at database"
+        return res.status(HttpStatus.OK).json({
+          message: "property not found, empty at database",   
+          data: getAllProprties, 
         })
       }
 
@@ -228,8 +229,9 @@ export class PropertyController {
       const getAllProprties = await this.propertyService.findMyPrivateProperty(user_id);
 
       if (getAllProprties.length === 0) {
-        return res.status(HttpStatus.NOT_FOUND).json({
-          message: "property not found, empty at database"
+        return res.status(HttpStatus.OK).json({
+          message: "property not found, empty at database",
+          data: getAllProprties
         })
       }
 
