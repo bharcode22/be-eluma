@@ -152,4 +152,23 @@ export class ServiceService {
       where: { id },
     });
   }
+
+  async createServiceType(service_type: string) {
+    return this.prisma.serviceType.create({
+      data: { service_type },
+    });
+  }
+
+  async updateServiceType(id: string, service_type: string) {
+    return this.prisma.serviceType.update({
+      where: { id },
+      data: { service_type, updated_at: new Date() },
+    });
+  }
+
+  async removeServiceType(id: string) {
+    return this.prisma.serviceType.delete({
+      where: { id },
+    });
+  }
 }

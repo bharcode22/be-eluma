@@ -46,6 +46,64 @@ export class ServiceController {
 
   @Roles('admin')
   @UseGuards(AuthGuard)
+  @Post('types')
+  async createServiceType(@Body('service_type') service_type: string, @Res() res: Response) {
+    try {
+      const newType = await this.serviceService.createServiceType(service_type);
+      return res.status(HttpStatus.CREATED).json({
+        message: 'service type created successfully',
+        data: newType,
+      });
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to create service type',
+        error: error.message,
+      });
+    }
+  }
+
+  @Roles('admin')
+  @UseGuards(AuthGuard)
+  @Patch('types/:id')
+  async updateServiceType(
+    @Param('id') id: string,
+    @Body('service_type') service_type: string,
+    @Res() res: Response
+  ) {
+    try {
+      const updatedType = await this.serviceService.updateServiceType(id, service_type);
+      return res.status(HttpStatus.OK).json({
+        message: 'service type updated successfully',
+        data: updatedType,
+      });
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to update service type',
+        error: error.message,
+      });
+    }
+  }
+
+  @Roles('admin')
+  @UseGuards(AuthGuard)
+  @Delete('types/:id')
+  async removeServiceType(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const deletedType = await this.serviceService.removeServiceType(id);
+      return res.status(HttpStatus.OK).json({
+        message: 'service type deleted successfully',
+        data: deletedType,
+      });
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to delete service type',
+        error: error.message,
+      });
+    }
+  }
+
+  @Roles('admin')
+  @UseGuards(AuthGuard)
   @Post()
   @UseInterceptors(
     FilesInterceptor('images', 10, {

@@ -72,11 +72,15 @@ export class UsersManagementService {
       }
     })
 
-    const formatData = ({
-      id              : getUserByIdData.id, 
-      role            : getUserByIdData.role, 
-      status          : getUserByIdData.status        
-    })
+    const formatData = {
+      id: getUserByIdData.id, 
+      name: getUserByIdData.name,
+      username: getUserByIdData.username,
+      email: getUserByIdData.email,
+      role: getUserByIdData.role, 
+      status: getUserByIdData.status,
+      created_at: getUserByIdData.created_at
+    };
 
     return formatData;
   }
