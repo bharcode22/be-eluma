@@ -1,24 +1,24 @@
 # Stage 1: Build stage (Debian-based Node 20)
 FROM node:20-slim AS builder
 
+# Install build dependencies for native node C++ modules (bcrypt) & OpenSSL for Prisma
+RUN apt-get update && apt-get install -y python3 make g++ openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Copy package files and Prisma schema
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install dependencies and generate Prisma Client
-RUN npm install
-RUN npx prisma generate
+# Install all dependencies with legacy peer deps fallback
+RUN npm install --legacy-peer-deps
 
-# Copy application source
+# Copy application source code
 COPY . .
 
-# Build NestJS application
+# Generate Prisma Client & Build NestJS application
+RUN npx prisma generate
 RUN npm run build
-
-# Prune development dependencies
-RUN npm prune --omit=dev
 
 # Stage 2: Production runner stage (Debian Bookworm)
 FROM node:20-slim AS runner
@@ -31,7 +31,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3003
 
-# Copy compiled app, pruned node_modules, and Prisma schema from builder
+# Copy compiled app, node_modules, package.json, and Prisma schema from builder
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
