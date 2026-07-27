@@ -1,6 +1,28 @@
+import { IsOptional, IsString, IsEnum } from 'class-validator';
+
+export enum ServiceStatusEnum {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+}
+
 export class CreateServiceDto {
-    type_id       : string 
-    service_name  : string
-    service_type  : string
-    description   : string
+  @IsOptional()
+  @IsString()
+  type_id?: string;
+
+  @IsOptional()
+  @IsString()
+  service_name?: string;
+
+  @IsOptional()
+  @IsString()
+  service_type?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsEnum(ServiceStatusEnum)
+  status?: ServiceStatusEnum;
 }

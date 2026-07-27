@@ -6,7 +6,7 @@ import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    PrismaModule, 
+    PrismaModule,
     AuthModule
   ],
   controllers: [
@@ -17,4 +17,4 @@ import { AuthModule } from '../auth/auth.module';
   ],
 })
 
-export class ServiceModule {}
+export class ServiceModule { }

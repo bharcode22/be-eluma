@@ -1,4 +1,18 @@
-import { Controller, Get, Res,  Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, Req, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Res,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  UseGuards,
+  Query,
+  UseInterceptors,
+  UploadedFiles
+} from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Roles } from '../auth/guard/roles.decorator';
 import { AuthGuard } from '../auth/guard/auth.guard';
@@ -12,9 +26,23 @@ import * as path from 'path';
 
 @Controller('service')
 export class ServiceController {
-  constructor(
-    private readonly serviceService: ServiceService
-  ) {}
+  constructor(private readonly serviceService: ServiceService) {}
+
+  @Get('types')
+  async getServiceTypes(@Res() res: Response) {
+    try {
+      const types = await this.serviceService.getServiceTypes();
+      return res.status(HttpStatus.OK).json({
+        message: 'success to get service types',
+        data: types,
+      });
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to get service types',
+        error: error.message,
+      });
+    }
+  }
 
   @Roles('admin')
   @UseGuards(AuthGuard)
@@ -36,15 +64,18 @@ export class ServiceController {
       }),
     }),
   )
-  async create( @Body() dto: CreateServiceDto, @UploadedFiles() files, @Res() res: Response) {
+  async create(
+    @Body() dto: CreateServiceDto,
+    @UploadedFiles() files: any[],
+    @Res() res: Response
+  ) {
     try {
       const createService = await this.serviceService.create(dto, files);
 
       return res.status(HttpStatus.CREATED).json({
-        message: 'success to create file',
+        message: 'success to create service',
         data: createService,
       });
-
     } catch (error: any) {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: 'Failed to create service',
@@ -53,37 +84,113 @@ export class ServiceController {
     }
   }
 
-  @Roles('admin')
-  @UseGuards(AuthGuard)
   @Get()
-  async findAll(@Res() res: Response) {
+  async findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Res() res?: Response
+  ) {
     try {
-      const getServiceData = await this.serviceService.findAll();
+      const pageNum = page ? parseInt(page, 10) : 1;
+      const limitNum = limit ? parseInt(limit, 10) : 10;
 
-      return res.status(HttpStatus.ACCEPTED).json({
-        data: getServiceData
-      })
+      const result = await this.serviceService.findAll(
+        pageNum,
+        limitNum,
+        search || ''
+      );
 
+      return res?.status(HttpStatus.OK).json({
+        message: 'success to get all service data',
+        data: result.data,
+        meta: result.meta,
+      });
     } catch (error: any) {
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message: 'Failed to get service',
+      return res?.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to get service data',
         error: error.message,
       });
     }
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.serviceService.findOne(+id);
+  async findOne(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const service = await this.serviceService.findOne(id);
+
+      return res.status(HttpStatus.OK).json({
+        message: 'success to get service data by id',
+        data: service,
+      });
+    } catch (error: any) {
+      const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
+      return res.status(status).json({
+        message: 'Failed to get service',
+        error: error.message,
+      });
+    }
   }
 
+  @Roles('admin')
+  @UseGuards(AuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateServiceDto: UpdateServiceDto) {
-    return this.serviceService.update(+id, updateServiceDto);
+  @UseInterceptors(
+    FilesInterceptor('images', 10, {
+      storage: diskStorage({
+        destination: (req: any, file: any, cb: any) => {
+          const uploadPath = path.join(process.cwd(), 'serviceImages');
+          fs.mkdirSync(uploadPath, { recursive: true });
+          cb(null, uploadPath);
+        },
+        filename: (req: any, file: any, cb: any) => {
+          const uniqueName =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = path.extname(file.originalname);
+          cb(null, uniqueName + ext);
+        },
+      }),
+    }),
+  )
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateServiceDto,
+    @UploadedFiles() files: any[],
+    @Res() res: Response
+  ) {
+    try {
+      const updatedService = await this.serviceService.update(id, dto, files);
+
+      return res.status(HttpStatus.OK).json({
+        message: 'service updated successfully',
+        data: updatedService,
+      });
+    } catch (error: any) {
+      const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
+      return res.status(status).json({
+        message: 'Failed to update service',
+        error: error.message,
+      });
+    }
   }
 
+  @Roles('admin')
+  @UseGuards(AuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.serviceService.remove(+id);
+  async remove(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const deletedService = await this.serviceService.remove(id);
+
+      return res.status(HttpStatus.OK).json({
+        message: 'service deleted successfully',
+        data: deletedService,
+      });
+    } catch (error: any) {
+      const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
+      return res.status(status).json({
+        message: 'Failed to delete service',
+        error: error.message,
+      });
+    }
   }
 }
