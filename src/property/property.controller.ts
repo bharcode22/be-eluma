@@ -212,8 +212,9 @@ export class PropertyController {
       })
 
     } catch (error: any) {
+      console.error('❌ Error in findMyProperty:', error);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
-        message: 'Failed to add users data',
+        message: 'Failed to get user properties data',
         error: error.message,
       });
     }
