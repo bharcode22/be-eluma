@@ -5,7 +5,20 @@ networks:
     driver: bridge
 
 services:
-  # Database service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: eluma-backend
+    restart: always
+    ports:
+      - "3003:3003"
+    env_file:
+      - .env
+    networks:
+      - app-network
+
+  # Database service (optional for local PostgreSQL)
   db:
     image: postgres:16-alpine
     container_name: postgres-db
