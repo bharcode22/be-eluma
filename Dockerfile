@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=3003
+ENV PORT=3000
 
 # Copy compiled app, node_modules, package.json, and Prisma schema from builder
 COPY --from=builder /app/package*.json ./
@@ -38,7 +38,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
 # Expose backend port
-EXPOSE 3003
+EXPOSE 3000
 
 # Start NestJS backend application
 CMD ["npm", "run", "start:prod"]

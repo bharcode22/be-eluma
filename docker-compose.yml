@@ -12,7 +12,8 @@ services:
     container_name: eluma-backend
     restart: always
     ports:
-      - "3003:3003"
+      - "3003:3000"
+      - "3000:3000"
     env_file:
       - .env
     networks:
