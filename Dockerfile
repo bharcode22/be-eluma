@@ -41,4 +41,4 @@ COPY --from=builder /app/prisma ./prisma
 EXPOSE 3003
 
 # Start NestJS backend application
-CMD ["node", "dist/src/main.js"]
+CMD ["node", "dist/main.js"]
