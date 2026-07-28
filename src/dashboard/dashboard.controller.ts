@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Res, UseGuards, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Res, Req, UseGuards, HttpStatus } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { Roles } from '../auth/guard/roles.decorator';
 import { AuthGuard } from '../auth/guard/auth.guard';
@@ -18,11 +18,11 @@ export class DashboardController {
       return res.status(HttpStatus.OK).json({
         message: "success to get all stats data", 
         data: data
-      })
+      });
 
     } catch (error: any) {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message: 'Failed to create property',
+        message: 'Failed to fetch stats data',
         error: error.message,
       });
     }
@@ -38,11 +38,30 @@ export class DashboardController {
       return res.status(HttpStatus.OK).json({
         message: "success to get latest property data", 
         data: data
-      })
+      });
 
     } catch (error: any) {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message: 'Failed to create property',
+        message: 'Failed to fetch latest property data',
+        error: error.message,
+      });
+    }
+  }
+
+  @Roles('admin')
+  @UseGuards(AuthGuard)
+  @Get('/system-metrics')
+  async getSystemMetrics(@Res() res: Response) {
+    try {
+      const metrics = await this.dashboardService.getSystemMetrics();
+
+      return res.status(HttpStatus.OK).json({
+        message: "success to get system metrics",
+        data: metrics
+      });
+    } catch (error: any) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to fetch system metrics',
         error: error.message,
       });
     }

@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { CreateDashboardDto } from './dto/create-dashboard.dto';
-import { UpdateDashboardDto } from './dto/update-dashboard.dto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import * as os from 'os';
+import * as fs from 'fs';
 
 @Injectable()
 export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
-async findAllStatsData(from?: string, to?: string) {
+  async findAllStatsData(from?: string, to?: string) {
     const whereCondition: Prisma.PropertiesOwnerWhereInput = {
       deleted_at: null,
       ...(from && to && {
@@ -37,7 +37,7 @@ async findAllStatsData(from?: string, to?: string) {
     }
     const uniqueOwners = Array.from(uniqueDataMap.values());
 
-    // 4. Hitung data lain (bisa pakai filter juga kalau mau)
+    // 4. Hitung data lain
     const totalProperty = await this.prisma.properties.count({
       where: { deleted_at: null },
     });
@@ -80,8 +80,97 @@ async findAllStatsData(from?: string, to?: string) {
       where: {
         deleted_at: null
       }
-    })
+    });
 
-    return latestPropertyData
+    return latestPropertyData;
+  }
+
+  async getSystemMetrics() {
+    // 1. Storage / Disk Usage using fs.statfsSync if available
+    let storage = {
+      totalGB: 0,
+      usedGB: 0,
+      freeGB: 0,
+      usedPercentage: 0,
+    };
+
+    try {
+      if (typeof fs.statfsSync === 'function') {
+        const stats = fs.statfsSync(process.cwd());
+        const bsize = stats.bsize;
+        const totalBytes = stats.blocks * bsize;
+        const freeBytes = stats.bavail * bsize;
+        const usedBytes = totalBytes - freeBytes;
+
+        const totalGB = parseFloat((totalBytes / (1024 ** 3)).toFixed(2));
+        const freeGB = parseFloat((freeBytes / (1024 ** 3)).toFixed(2));
+        const usedGB = parseFloat((usedBytes / (1024 ** 3)).toFixed(2));
+        const usedPercentage = totalGB > 0 ? parseFloat(((usedGB / totalGB) * 100).toFixed(1)) : 0;
+
+        storage = { totalGB, usedGB, freeGB, usedPercentage };
+      }
+    } catch (err) {
+      console.warn('Unable to retrieve disk stats via fs.statfsSync:', err);
+    }
+
+    // 2. RAM Usage
+    const totalRamBytes = os.totalmem();
+    const freeRamBytes = os.freemem();
+    const usedRamBytes = totalRamBytes - freeRamBytes;
+
+    const totalRamMB = Math.round(totalRamBytes / (1024 * 1024));
+    const usedRamMB = Math.round(usedRamBytes / (1024 * 1024));
+    const freeRamMB = Math.round(freeRamBytes / (1024 * 1024));
+    const ramUsedPercentage = parseFloat(((usedRamMB / totalRamMB) * 100).toFixed(1));
+
+    // 3. CPU Load & Model
+    const cpus = os.cpus();
+    const cpuCores = cpus.length;
+    const cpuModel = cpus[0]?.model || 'Unknown CPU';
+    const loadAvg = os.loadavg(); // [1m, 5m, 15m]
+
+    // 4. Server Uptime
+    const uptimeSeconds = Math.floor(os.uptime());
+    const days = Math.floor(uptimeSeconds / (3600 * 24));
+    const hours = Math.floor((uptimeSeconds % (3600 * 24)) / 3600);
+    const minutes = Math.floor((uptimeSeconds % 3600) / 60);
+
+    const formattedUptime = `${days > 0 ? `${days}d ` : ''}${hours}h ${minutes}m`;
+
+    // 5. Database Health Ping
+    let dbStatus = 'connected';
+    let latencyMs = 0;
+    try {
+      const start = Date.now();
+      await this.prisma.$queryRaw`SELECT 1`;
+      latencyMs = Date.now() - start;
+    } catch (dbErr) {
+      dbStatus = 'disconnected';
+    }
+
+    return {
+      storage,
+      memory: {
+        totalMB: totalRamMB,
+        usedMB: usedRamMB,
+        freeMB: freeRamMB,
+        usedPercentage: ramUsedPercentage,
+      },
+      cpu: {
+        cores: cpuCores,
+        model: cpuModel,
+        loadAvg: loadAvg.map(l => parseFloat(l.toFixed(2))),
+      },
+      uptime: {
+        seconds: uptimeSeconds,
+        formatted: formattedUptime,
+      },
+      database: {
+        status: dbStatus,
+        latencyMs,
+      },
+      platform: os.platform(),
+      arch: os.arch(),
+    };
   }
 }
