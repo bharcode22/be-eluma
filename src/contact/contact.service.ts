@@ -33,7 +33,7 @@ export class ContactService {
   }
 
   async findOne(id: string) {
-    const getContactById = await this.prisma.contact.findMany({
+    const getContactById = await this.prisma.contact.findUnique({
       where: {
         id: id
       }

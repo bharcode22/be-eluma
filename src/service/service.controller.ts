@@ -234,6 +234,26 @@ export class ServiceController {
 
   @Roles('admin')
   @UseGuards(AuthGuard)
+  @Delete('image/:imageId')
+  async removeImage(@Param('imageId') imageId: string, @Res() res: Response) {
+    try {
+      const deletedImage = await this.serviceService.removeImage(imageId);
+
+      return res.status(HttpStatus.OK).json({
+        message: 'service image deleted successfully',
+        data: deletedImage,
+      });
+    } catch (error: any) {
+      const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
+      return res.status(status).json({
+        message: 'Failed to delete service image',
+        error: error.message,
+      });
+    }
+  }
+
+  @Roles('admin')
+  @UseGuards(AuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string, @Res() res: Response) {
     try {

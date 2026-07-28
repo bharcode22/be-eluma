@@ -1,4 +1,12 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateContactDto } from './create-contact.dto';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { ContactStatus } from '@prisma/client';
 
-export class UpdateContactDto extends PartialType(CreateContactDto) {}
+export class UpdateContactDto {
+    @IsString()
+    @IsOptional()
+    number?: string;
+
+    @IsEnum(ContactStatus)
+    @IsOptional()
+    status?: ContactStatus;
+}

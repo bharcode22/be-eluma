@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from '../prisma/prisma.module';
 import { UsersController } from './users/users.controller';
 import { UsersService } from './users/users.service';
@@ -35,6 +37,14 @@ import { SayHalloModule } from './say-hallo/say-hallo.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
+
     PrismaModule,
     AuthModule,
     TypePropertyModule,
@@ -55,7 +65,11 @@ import { SayHalloModule } from './say-hallo/say-hallo.module';
     UsersController
   ],
   providers: [
-    UsersService
+    UsersService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule { }

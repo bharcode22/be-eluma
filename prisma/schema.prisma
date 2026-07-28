@@ -30,6 +30,8 @@ model User {
   avatar     String?
   provider   String?
   properties Properties[]
+
+  @@index([deleted_at, role])
 }
 
 model PropertyType {
@@ -67,6 +69,11 @@ model Properties {
   propertyType        PropertyType       @relation(fields: [type_id], references: [id])
   user                User               @relation(fields: [user_id], references: [id])
   propertiesOwner     PropertiesOwner[]
+
+  @@index([deleted_at, isPublic])
+  @@index([user_id])
+  @@index([type_id])
+  @@index([created_at])
 }
 
 model Location {
@@ -80,6 +87,10 @@ model Location {
   updated_at   DateTime   @default(now()) @db.Timestamptz(6)
   deleted_at   DateTime?  @db.Timestamptz(6)
   properties   Properties @relation(fields: [property_id], references: [id])
+
+  @@index([property_id])
+  @@index([general_area])
+  @@index([deleted_at])
 }
 
 model Availability {
@@ -131,6 +142,8 @@ model Images {
   deleted_at  DateTime?  @db.Timestamptz(6)
   imageName   String?
   properties  Properties @relation(fields: [property_id], references: [id])
+
+  @@index([property_id])
 }
 
 model PropertiesOwner {
@@ -232,7 +245,7 @@ model ImagesService {
   created_at DateTime  @default(now()) @db.Timestamptz(6)
   updated_at DateTime  @default(now()) @db.Timestamptz(6)
   deleted_at DateTime? @db.Timestamptz(6)
-  service    Service   @relation(fields: [service_id], references: [id])
+  service    Service   @relation(fields: [service_id], references: [id], onDelete: Cascade)
 }
 
 model BlacklistedToken {
@@ -257,6 +270,9 @@ model FavoriteProperties {
   created_at  DateTime  @default(now()) @db.Timestamptz(6)
   updated_at  DateTime  @default(now()) @db.Timestamptz(6)
   deleted_at  DateTime? @db.Timestamptz(6)
+
+  @@index([user_id])
+  @@index([property_id])
 }
 
 model Contact {
