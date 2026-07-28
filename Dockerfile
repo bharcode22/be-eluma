@@ -31,6 +31,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
+# Create persistent image directories
+RUN mkdir -p /app/propertyImages /app/serviceImages
+
 # Copy compiled app, node_modules, package.json, and Prisma schema from builder
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules

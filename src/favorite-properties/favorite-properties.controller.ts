@@ -75,10 +75,10 @@ export class FavoritePropertiesController {
       }));
 
       return res.status(HttpStatus.OK).json({
-        messgae: "success get saved property", 
+        message: "success get saved property",
         user_id,
         totalFavorites: propertyIds.length,
-        data: propertiData,
+        data: mergedData,
       });
 
     } catch (error: any) {

@@ -6,13 +6,13 @@ import helmet from 'helmet';
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
-  
+
   // Security Headers
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-  
+
   // Enable CORS
   app.enableCors();
-  
+
   // Global Input Validation & Payload Sanitization
   app.useGlobalPipes(
     new ValidationPipe({
